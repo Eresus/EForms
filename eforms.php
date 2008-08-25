@@ -85,28 +85,6 @@ class EForms extends Plugin {
 	}
 	//-----------------------------------------------------------------------------
 	/**
-	 * Диалог настроек плагина
-	 *
-	 * @return string  Форма настроек
-	 */
-	function settings()
-	{
-		global $page;
-
-		$form = array(
-			'name'=>'SettingsForm',
-			'caption' => $this->title.' '.$this->version,
-			'width' => '500px',
-			'fields' => array (
-				array('type' => 'hidden', 'name' => 'update', 'value' => $this->name),
-			),
-			'buttons' => array('ok', 'apply', 'cancel'),
-		);
-		$result = $page->renderForm($form, $this->settings);
-		return $result;
-	}
-	//-----------------------------------------------------------------------------
-	/**
 	 * Получить объект Templates
 	 *
 	 * @return object Templates
@@ -142,10 +120,33 @@ class EForms extends Plugin {
 	 * @param string $name
 	 * @return string
 	 */
-	function getForm($name)
+	function getFormCode($name)
 	{
 		$templates = $this->getTemplates();
 		$form = $templates->get($name, $this->name);
+
+		return $form;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Получить объект формы
+	 *
+	 * @param string $name
+	 * @return DOMDocument
+	 */
+	function getForm($name)
+	{
+		$html = $this->getFormCode($name);
+
+		$form = new DOMDocument();
+		$form->loadXML($html);
+		$form->normalize();
+		$x = $form->getElementsByTagName('input');
+		$x = $x->item(0);
+		$x = $x->attributes;
+		$x = $x->item(2);
+		var_dump($x->nodeName);
+		die();
 
 		return $form;
 	}
@@ -316,10 +317,16 @@ class EForms extends Plugin {
 	{
 		$result = $macros[0];
 
-		$forms = $this->getForms();
+		$name = $macros[1];
+		$form = $this->getForm($name);
 
-		if (isset($forms[$macros[1]])) {
-			$form_name = $macros[1];
+		die;
+
+		if ($form) {
+
+
+			$form = $this->getForm($name);
+
 			$templates = $this->getTemplates();
 			$form = $templates->get($form_name, $this->name);
 			$result = $this->renderForm($form, $form_name);
@@ -336,7 +343,7 @@ class EForms extends Plugin {
 		global $Eresus;
 
 		if (arg('ext') == $this->name) {
-			$form = $this->getForm(arg('form'));
+			$form = $this->getFormCode(arg('form'));
 			$meta = $this->getMetaInfo($form);
 			#$form = $this->stripMetaInfo($form);
 			foreach ($meta['action'] as $action) $this->processAction($action, $form);
