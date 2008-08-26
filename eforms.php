@@ -30,6 +30,217 @@
  * <http://www.gnu.org/licenses/>
  */
 
+
+/**
+ * Форма
+ *
+ */
+class EForm {
+	const NS = 'http://procreat.ru/eresus2/ext/eforms';
+	/**
+	 * Form name
+	 *
+	 * @var string
+	 */
+	private $name;
+	/**
+	 * Raw form code
+	 *
+	 * @var string
+	 */
+	private $code;
+	/**
+	 * XML representation
+	 *
+	 * @var DOMDocument
+	 */
+	private $xml;
+
+	function __construct($name)
+	{
+		global $Eresus;
+
+
+		$this->name = $name;
+
+		$plugin = $Eresus->plugins->items['eforms'];
+		$code = $plugin->getFormCode($name);
+
+		if ($code) {
+			$this->xml = new DOMDocument();
+			$this->xml->loadXML($code);
+			$this->xml->normalize();
+			$this->setActionAttribute();
+			$this->setActionTags();
+		}
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Set form's action attribute
+	 *
+	 */
+	protected function setActionAttribute()
+	{
+		global $Eresus;
+
+		$form = $this->xml->getElementsByTagName('form')->item(0);
+		$form->setAttribute('action', $Eresus->request['path']);
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Adds hidden inputs to form
+	 *
+	 */
+	protected function setActionTags()
+	{
+		$form = $this->xml->getElementsByTagName('form')->item(0);
+		$div = $this->xml->createElement('div');
+
+		$input = $this->xml->createElement('input');
+		$input->setAttribute('type', 'hidden');
+		$input->setAttribute('name', 'ext');
+		$input->setAttribute('value', 'eforms');
+		$div->appendChild($input);
+
+		$input = $this->xml->createElement('input');
+		$input->setAttribute('type', 'hidden');
+		$input->setAttribute('name', 'form');
+		$input->setAttribute('value', $this->name);
+		$div->appendChild($input);
+
+		$form->appendChild($div);
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Return TRUE if form loaded and it is valid
+	 *
+	 * @return unknown
+	 */
+	public function valid()
+	{
+		return is_object($this->xml);
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Get HTML form markup
+	 *
+	 * @return string
+	 */
+	public function getHTML()
+	{
+		$xml = clone $this->xml;
+		# Clean extended tags
+		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
+		for($i=0; $i<$tags->length; $i++) {
+			$node = $tags->item($i);
+			$node->parentNode->removeChild($node);
+		}
+
+		# Clean extended attrs
+		$tags = $xml->getElementsByTagName('*');
+		for($i=0; $i<$tags->length; $i++) {
+			$node = $tags->item($i);
+
+			$isElement = $node->nodeType == XML_ELEMENT_NODE;
+			$hasAttributes = $isElement && $node->hasAttributes();
+
+			if ($isElement && $hasAttributes) {
+				$attrs = $node->attributes;
+				for($j=0; $j<$attrs->length; $j++) {
+					$node = $attrs->item($j);
+					if ($node->namespaceURI == self::NS) $node->ownerElement->removeAttributeNode($node);
+				}
+			}
+		}
+
+		$xml->formatOutput = true;
+		$html = $xml->saveXML();
+		$html = preg_replace('/<\?.*\?>\s*/', '', $html); # Remove XML header
+		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
+
+		return $html;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Return posted form data
+	 *
+	 * @return array
+	 */
+	protected function getFormData()
+	{
+		$data = array();
+		$inputTagNames = array('input', 'textarea', 'select');
+
+		$elements = $this->xml->getElementsByTagName('form')->item(0)->getElementsByTagName('*');
+
+		for($i = 0; $i < $elements->length; $i++) {
+			$element = $elements->item($i);
+
+			$isElement = $element->nodeType == XML_ELEMENT_NODE;
+			$isInputTag = $isElement && in_array($element->nodeName, $inputTagNames);
+
+			if ($isInputTag) {
+				switch ($element->nodeName) {
+					case 'input':
+						$name = $element->getAttribute('name');
+						if ($name) {
+							$data[$name]['data'] = arg($name);
+							$label = $element->getAttributeNS(self::NS, 'label');
+							if ($label) $data[$name]['label'] = iconv('utf-8', CHARSET, $label);
+						}
+					break;
+				}
+			}
+		}
+
+		return $data;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Process form actions
+	 *
+	 */
+	public function processActions()
+	{
+		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
+		if ($actionsElement) {
+			$actions = $actionsElement->item(0)->childNodes;
+			for($i = 0; $i < $actions->length; $i++) {
+				$action = $actions->item($i);
+				if ($action->nodeType == XML_ELEMENT_NODE) $this->processAction($action);
+			}
+		}
+		die;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Process action directive
+	 *
+	 * @param DOMElement $action
+	 */
+	protected function processAction($action)
+	{
+		$actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS))+1);
+		$methodName = 'action'.$actionName;
+		if (method_exists($this, $methodName)) $this->$methodName($action);
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Process 'mailto' action
+	 *
+	 * @param DOMElement $action
+	 */
+	protected function actionMailto($action)
+	{
+		$to = $action->getAttribute('to');
+		$subj = $action->getAttribute('subj');
+		$from = $action->getAttribute('from');
+		$data = $this->getFormData();
+		var_dump($data);
+	}
+	//-----------------------------------------------------------------------------
+}
+
 class EForms extends Plugin {
 	var $version = '1.00a';
 	var $kernel = '2.10';
@@ -129,126 +340,11 @@ class EForms extends Plugin {
 	}
 	//-----------------------------------------------------------------------------
 	/**
-	 * Получить объект формы
-	 *
-	 * @param string $name
-	 * @return DOMDocument
-	 */
-	function getForm($name)
-	{
-		$html = $this->getFormCode($name);
-
-		$form = new DOMDocument();
-		$form->loadXML($html);
-		$form->normalize();
-		$x = $form->getElementsByTagName('input');
-		$x = $x->item(0);
-		$x = $x->attributes;
-		$x = $x->item(2);
-		var_dump($x->nodeName);
-		die();
-
-		return $form;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Получить метаинформацию о форме
-	 *
-	 * @param unknown_type $form
-	 * @return unknown
-	 */
-	function getMetaInfo($form)
-	{
-		if ($info = preg_match_all('/<meta.*>/Usi', $form, $meta)) {
-			$info = array();
-			for($i = 0; $i < count($meta[0]); $i++) {
-				preg_match('/name="(.*)"/Ui', $meta[0][$i], $name);
-				preg_match('/content="(.*)"/Ui', $meta[0][$i], $content);
-				$info[$name[1]][] = $content[1];
-			}
-		}
-
-		return $info;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Удаление метаинформации из кода формы
-	 *
-	 * @param string $html
-	 * @return string
-	 */
-	function stripMetaInfo($html)
-	{
-		$html = preg_replace('/<meta.*>\s*?/Usi', '', $html);
-		$html = preg_replace('/\s*'.$this->name.':\w+=".*"/Usi', '', $html);
-		return $html;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Устанавливает значение атрибута action
-	 *
-	 * @param string $html
-	 * @param string $formName
-	 * @return string
-	 */
-	function setActionAttr($html, $formName)
-	{
-		global $Eresus;
-
-		$html = preg_replace('/(<form[^>]*)\s+action=(")?(\')?.*?(?(2)"|\')/si', '$1', $html);
-		$html = preg_replace('/(<form)/i', '$1 action="'.$Eresus->request['path'].'"', $html);
-		$html = preg_replace('/(<form[^>]*>\s*?)/Usi',
-			'$1<div class="hidden">'.
-			'<input type="hidden" name="ext" value="'.$this->name.'" />'.
-			'<input type="hidden" name="form" value="'.$formName.'" /></div>',
-			$html
-		);
-		return $html;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Отрисовка HTML-кода формы
-	 *
-	 * @param string $form
-	 * @param string $formName
-	 * @return string
-	 */
-	function renderForm($form, $formName)
-	{
-		$result = $form;
-
-		$result = $this->setActionAttr($result, $formName);
-
-		$result = $this->stripMetaInfo($result);
-
-		return $result;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Разбор формы
-	 *
-	 * @param string $form
-	 * @return DOMDocument
-	 */
-	function parseForm($form)
-	{
-		$xml = new DOMDocument();
-		$xml->loadXML('<?xml version="1.0" encoding="windows-1251"?>'."\n<eforms>".$form.'</eforms>');
-		$form = $xml->getElementsByTagName('form');
-		$form = $form->item(0);
-		$children = $form->getElementsByTagName('*');
-		$elements = array();
-		$i = 0;
-		while ($node = $children->item($i++)) if (in_array($node->nodeName, array('input','textarea','select'))) $elements[]=$node;
-
-		return $elements;
-	}
-	//-----------------------------------------------------------------------------
-	/**
 	 * Отправка данных формы почтой
 	 *
 	 * @param string $action
 	 * @param string $form
+	 * @deprecated
 	 */
 	function actionMailto($action, $form)
 	{
@@ -287,6 +383,7 @@ class EForms extends Plugin {
 	 *
 	 * @param string $action
 	 * @param string $form
+	 * @deprecated
 	 */
 	function processAction($action, $form)
 	{
@@ -303,6 +400,7 @@ class EForms extends Plugin {
 	 */
 	function clientOnPageRender($text)
 	{
+
 		$text = preg_replace_callback('/\$\('.$this->name.':(.*)\)/Usi', array($this, 'buildForm'), $text);
 		return $text;
 	}
@@ -317,20 +415,10 @@ class EForms extends Plugin {
 	{
 		$result = $macros[0];
 
-		$name = $macros[1];
-		$form = $this->getForm($name);
+		$form = new EForm($macros[1]);
 
-		die;
+		if ($form->valid()) $result = $form->getHTML();
 
-		if ($form) {
-
-
-			$form = $this->getForm($name);
-
-			$templates = $this->getTemplates();
-			$form = $templates->get($form_name, $this->name);
-			$result = $this->renderForm($form, $form_name);
-		}
 		return $result;
 	}
 	//-----------------------------------------------------------------------------
@@ -343,10 +431,8 @@ class EForms extends Plugin {
 		global $Eresus;
 
 		if (arg('ext') == $this->name) {
-			$form = $this->getFormCode(arg('form'));
-			$meta = $this->getMetaInfo($form);
-			#$form = $this->stripMetaInfo($form);
-			foreach ($meta['action'] as $action) $this->processAction($action, $form);
+			$form = new EForm(arg('form', 'word'));
+			$form->processActions();
 			goto($Eresus->request['referer']);
 		}
 	}
