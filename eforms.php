@@ -212,6 +212,12 @@ class EForm {
 	 * @var DOMDocument
 	 */
 	protected $xml;
+	/**
+	 * URI for redirect
+	 *
+	 * @var mixed
+	 */
+	protected $redirect = false;
 
 	/**
 	 * Constructor
@@ -412,6 +418,7 @@ class EForm {
 				if ($action->nodeType == XML_ELEMENT_NODE) $this->processAction($action);
 			}
 		}
+		if ($this->redirect) goto($this->redirect);
 	}
 	//-----------------------------------------------------------------------------
 	/**
@@ -447,8 +454,23 @@ class EForm {
 			if (!isset($item['label'])) continue;
 			$text .= $item['label'].': '.$item['data']."\n";
 		}
-		die($text);
 		sendMail($to, $subj, $text);
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Process 'redirect' action
+	 *
+	 * @param DOMElement $action
+	 */
+	protected function actionRedirect($action)
+	{
+		global $page;
+
+		if ($this->redirect) return;
+
+		$this->redirect = $action->getAttribute('uri');
+		$this->redirect = $page->replaceMacros($this->redirect);
+
 	}
 	//-----------------------------------------------------------------------------
 }
