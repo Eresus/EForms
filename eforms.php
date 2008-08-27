@@ -210,7 +210,6 @@ class EForm {
 				if ($action->nodeType == XML_ELEMENT_NODE) $this->processAction($action);
 			}
 		}
-		die;
 	}
 	//-----------------------------------------------------------------------------
 	/**
@@ -234,9 +233,20 @@ class EForm {
 	{
 		$to = $action->getAttribute('to');
 		$subj = $action->getAttribute('subj');
-		$from = $action->getAttribute('from');
+		#$from = $action->getAttribute('from');
 		$data = $this->getFormData();
-		var_dump($data);
+
+		if (!$to) return false;
+		if (!$subj) $subj = $this->name;
+		#$from = $action->getAttribute('from');
+
+		$text = '';
+		foreach ($data as $item) {
+			if (!isset($item['label'])) continue;
+			$text .= $item['label'].': '.$item['data']."\n";
+		}
+
+		sendMail($to, $subj, $text);
 	}
 	//-----------------------------------------------------------------------------
 }
@@ -337,59 +347,6 @@ class EForms extends Plugin {
 		$form = $templates->get($name, $this->name);
 
 		return $form;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Отправка данных формы почтой
-	 *
-	 * @param string $action
-	 * @param string $form
-	 * @deprecated
-	 */
-	function actionMailto($action, $form)
-	{
-		$action = explode(';', $action);
-		$mail = trim(substr($action[0], 7));
-		$subj = $this->name;
-		for($i=1; $i < count($action); $i++) {
-			list($key, $value) = explode('=', $action[$i]);
-			switch ($key) {
-				case 'subject': $subj = $value; break;
-			}
-		}
-		$elements = $this->parseForm($form);
-		$text = '';
-		foreach($elements as $element) {
-			switch ($element->nodeName) {
-				case 'input':
-					switch($element->getAttribute('type')) {
-						case 'text':
-							$label = iconv('utf-8', 'windows-1251', $element->getAttribute('label'));
-							if (!$label) $label = $element->getAttribute('name');
-							$text .= $label.': '.arg($element->getAttribute('name'))."\n";
-						break;
-					}
-				break;
-				case 'textarea':
-				break;
-			}
-			$text .= "\n";
-		}
-		sendMail($mail, $subj, $text);
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Обработка действия формы
-	 *
-	 * @param string $action
-	 * @param string $form
-	 * @deprecated
-	 */
-	function processAction($action, $form)
-	{
-		switch (true) {
-			case substr($action, 0, 7) == 'mailto:': $this->actionMailto($action, $form);
-		}
 	}
 	//-----------------------------------------------------------------------------
 	/**
