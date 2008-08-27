@@ -6,7 +6,7 @@
  *
  * Расширенные HTML-формы
  *
- * @version 1.00a
+ * @version 1.00b
  *
  * @copyright   2008, Eresus Group, http://eresus.ru/
  * @license     http://www.gnu.org/licenses/gpl.txt  GPL License 3
@@ -30,6 +30,151 @@
  * <http://www.gnu.org/licenses/>
  */
 
+
+class EForms extends Plugin {
+	var $version = '1.00b';
+	var $kernel = '2.10';
+	var $title = 'E-Forms';
+	var $description = 'Расширенные HTML-формы';
+	var $type = 'client,admin';
+
+	/**
+	 * Список доступных форм
+	 *
+	 * @var array
+	 *
+	 * @access private
+	 */
+	var $forms = null;
+	/**
+	 * Экземпляр объекта Templates
+	 *
+	 * @var object Templates
+	 *
+	 * @access private
+	 */
+	var $templates = null;
+
+
+	/**
+	 * Констурктор
+	 *
+	 * @return EForms
+	 */
+	function EForms()
+	{
+		parent::Plugin();
+		$this->listenEvents('clientOnStart', 'clientOnPageRender');
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Действия при установке плагина
+	 *
+	 */
+	function install()
+	{
+		global $Eresus;
+
+		parent::install();
+
+		$umask = umask(0000);
+		mkdir($Eresus->froot.'templates/'.$this->name, 0777);
+		umask($umask);
+
+		#TODO: Удаление директории и форм при деинсталляции
+
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Получить объект Templates
+	 *
+	 * @return object Templates
+	 */
+	function getTemplates()
+	{
+		if (is_null($this->templates)) {
+			useLib('templates');
+			$this->templates = new Templates();
+		}
+
+		return $this->templates;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Получить список доступных форм
+	 *
+	 * @return array
+	 */
+	function getForms()
+	{
+		if (is_null($this->forms)) {
+			$templates = $this->getTemplates();
+			$this->forms = $templates->enum($this->name);
+		}
+
+		return $this->forms;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Получить код формы
+	 *
+	 * @param string $name
+	 * @return string
+	 */
+	function getFormCode($name)
+	{
+		$templates = $this->getTemplates();
+		$form = $templates->get($name, $this->name);
+
+		return $form;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Подстановка форм на страницу
+	 *
+	 * @param string $text
+	 * @return string
+	 */
+	function clientOnPageRender($text)
+	{
+
+		$text = preg_replace_callback('/\$\('.$this->name.':(.*)\)/Usi', array($this, 'buildForm'), $text);
+		return $text;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * HTML-код формы
+	 *
+	 * @param array $macros
+	 * @return string
+	 */
+	function buildForm($macros)
+	{
+		$result = $macros[0];
+
+		$form = new EForm($macros[1]);
+
+		if ($form->valid()) $result = $form->getHTML();
+
+		return $result;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Обработка отправленных форм
+	 *
+	 */
+	function clientOnStart()
+	{
+		global $Eresus;
+
+		if (arg('ext') == $this->name) {
+			$form = new EForm(arg('form', 'word'));
+			$form->processActions();
+			goto($Eresus->request['referer']);
+		}
+	}
+	//-----------------------------------------------------------------------------
+}
 
 /**
  * Форма
@@ -247,151 +392,6 @@ class EForm {
 		}
 
 		sendMail($to, $subj, $text);
-	}
-	//-----------------------------------------------------------------------------
-}
-
-class EForms extends Plugin {
-	var $version = '1.00a';
-	var $kernel = '2.10';
-	var $title = 'E-Forms';
-	var $description = 'Расширенные HTML-формы';
-	var $type = 'client,admin';
-
-	/**
-	 * Список доступных форм
-	 *
-	 * @var array
-	 *
-	 * @access private
-	 */
-	var $forms = null;
-	/**
-	 * Экземпляр объекта Templates
-	 *
-	 * @var object Templates
-	 *
-	 * @access private
-	 */
-	var $templates = null;
-
-
-	/**
-	 * Констурктор
-	 *
-	 * @return EForms
-	 */
-	function EForms()
-	{
-		parent::Plugin();
-		$this->listenEvents('clientOnStart', 'clientOnPageRender');
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Действия при установке плагина
-	 *
-	 */
-	function install()
-	{
-		global $Eresus;
-
-		parent::install();
-
-		$umask = umask(0000);
-		mkdir($Eresus->froot.'templates/'.$this->name, 0777);
-		umask($umask);
-
-		#TODO: Удаление директории и форм при деинсталляции
-
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Получить объект Templates
-	 *
-	 * @return object Templates
-	 */
-	function getTemplates()
-	{
-		if (is_null($this->templates)) {
-			useLib('templates');
-			$this->templates = new Templates();
-		}
-
-		return $this->templates;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Получить список доступных форм
-	 *
-	 * @return array
-	 */
-	function getForms()
-	{
-		if (is_null($this->forms)) {
-			$templates = $this->getTemplates();
-			$this->forms = $templates->enum($this->name);
-		}
-
-		return $this->forms;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Получить код формы
-	 *
-	 * @param string $name
-	 * @return string
-	 */
-	function getFormCode($name)
-	{
-		$templates = $this->getTemplates();
-		$form = $templates->get($name, $this->name);
-
-		return $form;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Подстановка форм на страницу
-	 *
-	 * @param string $text
-	 * @return string
-	 */
-	function clientOnPageRender($text)
-	{
-
-		$text = preg_replace_callback('/\$\('.$this->name.':(.*)\)/Usi', array($this, 'buildForm'), $text);
-		return $text;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * HTML-код формы
-	 *
-	 * @param array $macros
-	 * @return string
-	 */
-	function buildForm($macros)
-	{
-		$result = $macros[0];
-
-		$form = new EForm($macros[1]);
-
-		if ($form->valid()) $result = $form->getHTML();
-
-		return $result;
-	}
-	//-----------------------------------------------------------------------------
-	/**
-	 * Обработка отправленных форм
-	 *
-	 */
-	function clientOnStart()
-	{
-		global $Eresus;
-
-		if (arg('ext') == $this->name) {
-			$form = new EForm(arg('form', 'word'));
-			$form->processActions();
-			goto($Eresus->request['referer']);
-		}
 	}
 	//-----------------------------------------------------------------------------
 }
