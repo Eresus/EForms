@@ -64,7 +64,7 @@ class EForms extends Plugin {
 	function EForms()
 	{
 		parent::Plugin();
-		$this->listenEvents('clientOnStart', 'clientOnPageRender');
+		$this->listenEvents('clientOnContentRender', 'clientOnPageRender');
 	}
 	//-----------------------------------------------------------------------------
 	/**
@@ -164,17 +164,17 @@ class EForms extends Plugin {
 	 * Обработка отправленных форм
 	 *
 	 */
-	function clientOnStart()
+	function clientOnContentRender($content)
 	{
-		global $Eresus;
+		global $Eresus, $page;
 
 		if (arg('ext') == $this->name) {
 
 			$form = new EForm($this, arg('form', 'word'));
-			$form->processActions();
+			$content = $form->processActions();
 
-			goto($Eresus->request['referer']);
 		}
+		return $content;
 	}
 	//-----------------------------------------------------------------------------
 }
@@ -212,12 +212,19 @@ class EForm {
 	 * @var DOMDocument
 	 */
 	protected $xml;
+
 	/**
 	 * URI for redirect
 	 *
 	 * @var mixed
 	 */
 	protected $redirect = false;
+	/**
+	 * Contents of 'html' actions
+	 *
+	 * @var string
+	 */
+	protected $html = '';
 
 	/**
 	 * Constructor
@@ -409,6 +416,8 @@ class EForm {
 	 */
 	public function processActions()
 	{
+		global $Eresus;
+
 		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
 
 		if ($actionsElement) {
@@ -418,7 +427,10 @@ class EForm {
 				if ($action->nodeType == XML_ELEMENT_NODE) $this->processAction($action);
 			}
 		}
+
 		if ($this->redirect) goto($this->redirect);
+		if ($this->html) return $this->html;
+		goto($Eresus->request['referer']);
 	}
 	//-----------------------------------------------------------------------------
 	/**
@@ -471,6 +483,25 @@ class EForm {
 		$this->redirect = $action->getAttribute('uri');
 		$this->redirect = $page->replaceMacros($this->redirect);
 
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Process 'html' action
+	 *
+	 * @param DOMElement $action
+	 */
+	protected function actionHtml($action)
+	{
+		$elements = $action->childNodes;
+
+		if ($elements->length) {
+
+			$html = '';
+			for($i = 0; $i < $elements->length; $i++) $html .= $this->xml->saveXML($elements->item($i));
+			if (strtolower(CHARSET) != 'utf-8') $html = iconv('utf-8', CHARSET, $html);
+			$this->html .= $html;
+
+		}
 	}
 	//-----------------------------------------------------------------------------
 }
