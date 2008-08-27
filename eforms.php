@@ -81,7 +81,7 @@ class EForms extends Plugin {
 		mkdir($Eresus->froot.'templates/'.$this->name, 0777);
 		umask($umask);
 
-		#TODO: ”даление директории и форм при деинсталл€ции
+		#TODO: ƒобавить удаление директории и форм при деинсталл€ции
 
 	}
 	//-----------------------------------------------------------------------------
@@ -123,8 +123,9 @@ class EForms extends Plugin {
 	 */
 	function getFormCode($name)
 	{
+
 		$templates = $this->getTemplates();
-		$form = $templates->get($name, $this->name);
+		$form = $templates ? $templates->get($name, $this->name) : false;
 
 		return $form;
 	}
@@ -152,7 +153,7 @@ class EForms extends Plugin {
 	{
 		$result = $macros[0];
 
-		$form = new EForm($macros[1]);
+		$form = new EForm($this, $macros[1]);
 
 		if ($form->valid()) $result = $form->getHTML();
 
@@ -168,8 +169,10 @@ class EForms extends Plugin {
 		global $Eresus;
 
 		if (arg('ext') == $this->name) {
-			$form = new EForm(arg('form', 'word'));
+
+			$form = new EForm($this, arg('form', 'word'));
 			$form->processActions();
+
 			goto($Eresus->request['referer']);
 		}
 	}
@@ -181,39 +184,58 @@ class EForms extends Plugin {
  *
  */
 class EForm {
+	/**
+	 * E-Forms namespace
+	 */
 	const NS = 'http://procreat.ru/eresus2/ext/eforms';
+	/**
+	 * Owner plugin
+	 *
+	 * @var TPlugin
+	 */
+	protected $owner;
 	/**
 	 * Form name
 	 *
 	 * @var string
 	 */
-	private $name;
+	protected $name;
 	/**
 	 * Raw form code
 	 *
 	 * @var string
 	 */
-	private $code;
+	protected $code;
 	/**
 	 * XML representation
 	 *
 	 * @var DOMDocument
 	 */
-	private $xml;
+	protected $xml;
 
-	function __construct($name)
+	/**
+	 * Constructor
+	 *
+	 * @param TPlugin $owner  Plugin
+	 * @param string  $name   Form name
+	 */
+	function __construct($owner, $name)
 	{
 		global $Eresus;
 
-
+		$this->owner = $owner; #TODO: Check $owner class
 		$this->name = $name;
 
-		$plugin = $Eresus->plugins->items['eforms'];
-		$code = $plugin->getFormCode($name);
+		$code = $this->owner->getFormCode($name);
 
 		if ($code) {
-			$this->xml = new DOMDocument();
+
+			$imp = new DOMImplementation;
+			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN', 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
+			$this->xml = $imp->createDocument("", "", $dtd);
+			if (strtolower(CHARSET) != 'utf-8') $code = iconv(CHARSET, 'utf-8', $code);
 			$this->xml->loadXML($code);
+			$this->xml->encoding = 'utf-8';
 			$this->xml->normalize();
 			$this->setActionAttribute();
 			$this->setActionTags();
@@ -244,7 +266,7 @@ class EForm {
 		$input = $this->xml->createElement('input');
 		$input->setAttribute('type', 'hidden');
 		$input->setAttribute('name', 'ext');
-		$input->setAttribute('value', 'eforms');
+		$input->setAttribute('value', $this->owner->name);
 		$div->appendChild($input);
 
 		$input = $this->xml->createElement('input');
@@ -259,7 +281,7 @@ class EForm {
 	/**
 	 * Return TRUE if form loaded and it is valid
 	 *
-	 * @return unknown
+	 * @return bool
 	 */
 	public function valid()
 	{
@@ -274,6 +296,7 @@ class EForm {
 	public function getHTML()
 	{
 		$xml = clone $this->xml;
+
 		# Clean extended tags
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
 		for($i=0; $i<$tags->length; $i++) {
@@ -298,12 +321,34 @@ class EForm {
 			}
 		}
 
+		# Prevent em[ty textareas from collapsing
+		$tags = $xml->getElementsByTagName('textarea');
+		for($i=0; $i<$tags->length; $i++) {
+			$node = $tags->item($i);
+			$cdata = $xml->createCDATASection('');
+			$node->appendChild($cdata);
+		}
+
 		$xml->formatOutput = true;
-		$html = $xml->saveXML();
-		$html = preg_replace('/<\?.*\?>\s*/', '', $html); # Remove XML header
+		$html = $xml->saveXML($xml->firstChild); # This exclude xml declaration
 		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
+		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
+		if (strtolower(CHARSET) != 'utf-8') $html = iconv('utf-8', CHARSET, $html);
 
 		return $html;
+	}
+	//-----------------------------------------------------------------------------
+	/**
+	 * Get element's 'label' attribute
+	 *
+	 * @param DOMElement $element
+	 * @return string
+	 */
+	protected function getLabelAttr($element)
+	{
+		$label = $element->getAttributeNS(self::NS, 'label');
+		if ($label) $label = iconv('utf-8', CHARSET, $label);
+		return $label;
 	}
 	//-----------------------------------------------------------------------------
 	/**
@@ -315,6 +360,7 @@ class EForm {
 	{
 		$data = array();
 		$inputTagNames = array('input', 'textarea', 'select');
+		$skipNames = array('ext', 'form');
 
 		$elements = $this->xml->getElementsByTagName('form')->item(0)->getElementsByTagName('*');
 
@@ -325,15 +371,25 @@ class EForm {
 			$isInputTag = $isElement && in_array($element->nodeName, $inputTagNames);
 
 			if ($isInputTag) {
-				switch ($element->nodeName) {
-					case 'input':
-						$name = $element->getAttribute('name');
-						if ($name) {
-							$data[$name]['data'] = arg($name);
-							$label = $element->getAttributeNS(self::NS, 'label');
-							if ($label) $data[$name]['label'] = iconv('utf-8', CHARSET, $label);
-						}
-					break;
+				$name = $element->getAttribute('name');
+				if (in_array($name, $skipNames)) continue;
+				if ($name) {
+					$data[$name]['data'] = arg($name);
+					$data[$name]['label'] = $this->getLabelAttr($element);
+					if (!$data[$name]['label']) $data[$name]['label'] = $name;
+
+					switch ($element->nodeName) {
+						case 'input':
+
+							switch($element->getAttribute('type')) {
+								case 'checkbox':
+									$data[$name]['data'] = $data[$name]['data'] ? strYes : strNo;
+								break;
+							}
+
+						break;
+					}
+
 				}
 			}
 		}
@@ -348,6 +404,7 @@ class EForm {
 	public function processActions()
 	{
 		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
+
 		if ($actionsElement) {
 			$actions = $actionsElement->item(0)->childNodes;
 			for($i = 0; $i < $actions->length; $i++) {
@@ -390,7 +447,7 @@ class EForm {
 			if (!isset($item['label'])) continue;
 			$text .= $item['label'].': '.$item['data']."\n";
 		}
-
+		die($text);
 		sendMail($to, $subj, $text);
 	}
 	//-----------------------------------------------------------------------------
