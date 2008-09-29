@@ -28,6 +28,8 @@
  * Вы должны были получить копию Стандартной Общественной Лицензии
  * GNU с этой программой. Если Вы ее не получили, смотрите документ на
  * <http://www.gnu.org/licenses/>
+ *
+ * $Id$
  */
 
 
@@ -454,6 +456,7 @@ class EForm {
 	{
 		$to = $action->getAttribute('to');
 		$subj = $action->getAttribute('subj');
+		if ($subj) $subj = iconv('utf-8', CHARSET, $subj);
 		#$from = $action->getAttribute('from');
 		$data = $this->getFormData();
 
