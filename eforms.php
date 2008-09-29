@@ -2,7 +2,7 @@
 /**
  * E-Forms
  *
- * Eresus 2
+ * Eresus 2, PHP 5
  *
  * Расширенные HTML-формы
  *
