@@ -479,9 +479,11 @@ class EForm
 			}
 		}
 
-		if ($this->redirect) goto($this->redirect);
-		if ($this->html) return $this->html;
-		goto($Eresus->request['referer']);
+		if ($this->redirect)
+			HTTP::redirect($this->redirect);
+		if ($this->html)
+			return $this->html;
+		HTTP::redirect($Eresus->request['referer']);
 	}
 	//-----------------------------------------------------------------------------
 
