@@ -46,7 +46,7 @@ class EForms extends Plugin
 	 * Версия плагина
 	 * @var string
 	 */
-	public $version = '1.00b';
+	public $version = '1.00a';
 
 	/**
 	 * Требуемая версия ядра
