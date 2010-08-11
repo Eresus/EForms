@@ -202,8 +202,6 @@ class EForms extends Plugin
 	 */
 	public function clientOnContentRender($content)
 	{
-		global $Eresus, $page;
-
 		if (arg('ext') == $this->name) {
 
 			$form = new EForm($this, arg('form', 'word'));
@@ -278,8 +276,6 @@ class EForm
 	 */
 	public function __construct($owner, $name)
 	{
-		global $Eresus;
-
 		$this->owner = $owner; #TODO: Check $owner class
 		$this->name = $name;
 
