@@ -2,5 +2,5 @@
 <buildpath>
 	<buildpathentry kind="con" path="org.eclipse.php.core.LANGUAGE"/>
 	<buildpathentry kind="src" path=""/>
-	<buildpathentry combineaccessrules="false" kind="prj" path="/eresus2-testing"/>
+	<buildpathentry combineaccessrules="false" kind="prj" path="/eresus-cms-stable"/>
 </buildpath>
