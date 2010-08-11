@@ -124,7 +124,8 @@ class EForms extends Plugin
 	 */
 	public function getTemplates()
 	{
-		if (is_null($this->templates)) {
+		if (is_null($this->templates))
+		{
 			useLib('templates');
 			$this->templates = new Templates();
 		}
@@ -140,7 +141,8 @@ class EForms extends Plugin
 	 */
 	public function getForms()
 	{
-		if (is_null($this->forms)) {
+		if (is_null($this->forms))
+		{
 			$templates = $this->getTemplates();
 			$this->forms = $templates->enum($this->name);
 		}
@@ -173,7 +175,8 @@ class EForms extends Plugin
 	 */
 	public function clientOnPageRender($text)
 	{
-		$text = preg_replace_callback('/\$\('.$this->name.':(.*)\)/Usi', array($this, 'buildForm'), $text);
+		$text = preg_replace_callback('/\$\('.$this->name.':(.*)\)/Usi', array($this, 'buildForm'),
+			$text);
 		return $text;
 	}
 	//-----------------------------------------------------------------------------
@@ -190,7 +193,10 @@ class EForms extends Plugin
 
 		$form = new EForm($this, $macros[1]);
 
-		if ($form->valid()) $result = $form->getHTML();
+		if ($form->valid())
+		{
+			$result = $form->getHTML();
+		}
 
 		return $result;
 	}
@@ -202,11 +208,10 @@ class EForms extends Plugin
 	 */
 	public function clientOnContentRender($content)
 	{
-		if (arg('ext') == $this->name) {
-
+		if (arg('ext') == $this->name)
+		{
 			$form = new EForm($this, arg('form', 'word'));
 			$content = $form->processActions();
-
 		}
 		return $content;
 	}
@@ -281,12 +286,16 @@ class EForm
 
 		$code = $this->owner->getFormCode($name);
 
-		if ($code) {
-
+		if ($code)
+		{
 			$imp = new DOMImplementation;
-			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN', 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
+			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
+				'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
 			$this->xml = $imp->createDocument("", "", $dtd);
-			if (strtolower(CHARSET) != 'utf-8') $code = iconv(CHARSET, 'utf-8', $code);
+			if (strtolower(CHARSET) != 'utf-8')
+			{
+				$code = iconv(CHARSET, 'utf-8', $code);
+			}
 			$this->xml->loadXML($code);
 			$this->xml->encoding = 'utf-8';
 			$this->xml->normalize();
@@ -356,31 +365,39 @@ class EForm
 
 		# Clean extended tags
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
-		for($i=0; $i<$tags->length; $i++) {
+		for ($i=0; $i<$tags->length; $i++)
+		{
 			$node = $tags->item($i);
 			$node->parentNode->removeChild($node);
 		}
 
 		# Clean extended attrs
 		$tags = $xml->getElementsByTagName('*');
-		for($i=0; $i<$tags->length; $i++) {
+		for ($i=0; $i<$tags->length; $i++)
+		{
 			$node = $tags->item($i);
 
 			$isElement = $node->nodeType == XML_ELEMENT_NODE;
 			$hasAttributes = $isElement && $node->hasAttributes();
 
-			if ($isElement && $hasAttributes) {
+			if ($isElement && $hasAttributes)
+			{
 				$attrs = $node->attributes;
-				for($j=0; $j<$attrs->length; $j++) {
+				for ($j=0; $j<$attrs->length; $j++)
+				{
 					$node = $attrs->item($j);
-					if ($node->namespaceURI == self::NS) $node->ownerElement->removeAttributeNode($node);
+					if ($node->namespaceURI == self::NS)
+					{
+						$node->ownerElement->removeAttributeNode($node);
+					}
 				}
 			}
 		}
 
 		# Prevent em[ty textareas from collapsing
 		$tags = $xml->getElementsByTagName('textarea');
-		for($i=0; $i<$tags->length; $i++) {
+		for ($i=0; $i<$tags->length; $i++)
+		{
 			$node = $tags->item($i);
 			$cdata = $xml->createCDATASection('');
 			$node->appendChild($cdata);
@@ -390,7 +407,10 @@ class EForm
 		$html = $xml->saveXML($xml->firstChild); # This exclude xml declaration
 		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
 		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
-		if (strtolower(CHARSET) != 'utf-8') $html = iconv('utf-8', CHARSET, $html);
+		if (strtolower(CHARSET) != 'utf-8')
+		{
+			$html = iconv('utf-8', CHARSET, $html);
+		}
 
 		return $html;
 	}
@@ -405,7 +425,10 @@ class EForm
 	protected function getLabelAttr($element)
 	{
 		$label = $element->getAttributeNS(self::NS, 'label');
-		if ($label) $label = iconv('utf-8', CHARSET, $label);
+		if ($label)
+		{
+			$label = iconv('utf-8', CHARSET, $label);
+		}
 		return $label;
 	}
 	//-----------------------------------------------------------------------------
@@ -423,32 +446,40 @@ class EForm
 
 		$elements = $this->xml->getElementsByTagName('form')->item(0)->getElementsByTagName('*');
 
-		for($i = 0; $i < $elements->length; $i++) {
+		for ($i = 0; $i < $elements->length; $i++)
+		{
 			$element = $elements->item($i);
 
 			$isElement = $element->nodeType == XML_ELEMENT_NODE;
 			$isInputTag = $isElement && in_array($element->nodeName, $inputTagNames);
 
-			if ($isInputTag) {
+			if ($isInputTag)
+			{
 				$name = $element->getAttribute('name');
-				if (in_array($name, $skipNames)) continue;
-				if ($name) {
+				if (in_array($name, $skipNames))
+				{
+					continue;
+				}
+				if ($name)
+				{
 					$data[$name]['data'] = arg($name);
 					$data[$name]['label'] = $this->getLabelAttr($element);
-					if (!$data[$name]['label']) $data[$name]['label'] = $name;
+					if (!$data[$name]['label'])
+					{
+						$data[$name]['label'] = $name;
+					}
 
-					switch ($element->nodeName) {
+					switch ($element->nodeName)
+					{
 						case 'input':
-
-							switch($element->getAttribute('type')) {
+							switch ($element->getAttribute('type'))
+							{
 								case 'checkbox':
 									$data[$name]['data'] = $data[$name]['data'] ? strYes : strNo;
 								break;
 							}
-
 						break;
 					}
-
 				}
 			}
 		}
@@ -467,18 +498,27 @@ class EForm
 
 		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
 
-		if ($actionsElement) {
+		if ($actionsElement)
+		{
 			$actions = $actionsElement->item(0)->childNodes;
-			for($i = 0; $i < $actions->length; $i++) {
+			for ($i = 0; $i < $actions->length; $i++)
+			{
 				$action = $actions->item($i);
-				if ($action->nodeType == XML_ELEMENT_NODE) $this->processAction($action);
+				if ($action->nodeType == XML_ELEMENT_NODE)
+				{
+					$this->processAction($action);
+				}
 			}
 		}
 
 		if ($this->redirect)
+		{
 			HTTP::redirect($this->redirect);
+		}
 		if ($this->html)
+		{
 			return $this->html;
+		}
 		HTTP::redirect($Eresus->request['referer']);
 	}
 	//-----------------------------------------------------------------------------
@@ -492,7 +532,10 @@ class EForm
 	{
 		$actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS))+1);
 		$methodName = 'action'.$actionName;
-		if (method_exists($this, $methodName)) $this->$methodName($action);
+		if (method_exists($this, $methodName))
+		{
+			$this->$methodName($action);
+		}
 	}
 	//-----------------------------------------------------------------------------
 
@@ -505,17 +548,30 @@ class EForm
 	{
 		$to = $action->getAttribute('to');
 		$subj = $action->getAttribute('subj');
-		if ($subj) $subj = iconv('utf-8', CHARSET, $subj);
+		if ($subj)
+		{
+			$subj = iconv('utf-8', CHARSET, $subj);
+		}
 		#$from = $action->getAttribute('from');
 		$data = $this->getFormData();
 
-		if (!$to) return false;
-		if (!$subj) $subj = $this->name;
+		if (!$to)
+		{
+			return false;
+		}
+		if (!$subj)
+		{
+			$subj = $this->name;
+		}
 		#$from = $action->getAttribute('from');
 
 		$text = '';
-		foreach ($data as $item) {
-			if (!isset($item['label'])) continue;
+		foreach ($data as $item)
+		{
+			if (!isset($item['label']))
+			{
+				continue;
+			}
 			$text .= $item['label'].': '.$item['data']."\n";
 		}
 		sendMail($to, $subj, $text);
@@ -531,7 +587,10 @@ class EForm
 	{
 		global $page;
 
-		if ($this->redirect) return;
+		if ($this->redirect)
+		{
+			return;
+		}
 
 		$this->redirect = $action->getAttribute('uri');
 		$this->redirect = $page->replaceMacros($this->redirect);
@@ -548,13 +607,18 @@ class EForm
 	{
 		$elements = $action->childNodes;
 
-		if ($elements->length) {
-
+		if ($elements->length)
+		{
 			$html = '';
-			for($i = 0; $i < $elements->length; $i++) $html .= $this->xml->saveXML($elements->item($i));
-			if (strtolower(CHARSET) != 'utf-8') $html = iconv('utf-8', CHARSET, $html);
+			for ($i = 0; $i < $elements->length; $i++)
+			{
+				$html .= $this->xml->saveXML($elements->item($i));
+			}
+			if (strtolower(CHARSET) != 'utf-8')
+			{
+				$html = iconv('utf-8', CHARSET, $html);
+			}
 			$this->html .= $html;
-
 		}
 	}
 	//-----------------------------------------------------------------------------
