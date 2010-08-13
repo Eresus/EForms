@@ -108,9 +108,12 @@ class EForms extends Plugin
 
 		parent::install();
 
-		$umask = umask(0000);
-		mkdir($Eresus->froot.'templates/'.$this->name, 0777);
-		umask($umask);
+		if (!is_dir($Eresus->froot.'templates/'.$this->name))
+		{
+			$umask = umask(0000);
+			mkdir($Eresus->froot.'templates/'.$this->name, 0777);
+			umask($umask);
+		}
 
 		#TODO: Добавить удаление директории и форм при деинсталляции
 
