@@ -2,8 +2,6 @@
 /**
  * E-Forms
  *
- * Eresus 2.12
- *
  * Расширенные HTML-формы
  *
  * @version 1.00
@@ -46,7 +44,7 @@ class EForms extends Plugin
 	 * Версия плагина
 	 * @var string
 	 */
-	public $version = '1.00a';
+	public $version = '1.01a';
 
 	/**
 	 * Требуемая версия ядра
