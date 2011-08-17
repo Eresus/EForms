@@ -4,12 +4,12 @@
  *
  * Расширенные HTML-формы
  *
- * @version 1.00
+ * @version 1.01
  *
  * @copyright 2008, Eresus Group, http://eresus.ru/
  * @copyright 2010, ООО "Два слона", http://dvaslona.ru/
  * @license http://www.gnu.org/licenses/gpl.txt  GPL License 3
- * @author Mikhail Krasilnikov <mk@procreat.ru>
+ * @author Михаил Красильников <mihalych@vsepofigu.ru>
  *
  * Данная программа является свободным программным обеспечением. Вы
  * вправе распространять ее и/или модифицировать в соответствии с
@@ -112,9 +112,26 @@ class EForms extends Plugin
 			mkdir($Eresus->froot.'templates/'.$this->name, 0777);
 			umask($umask);
 		}
+	}
+	//-----------------------------------------------------------------------------
 
-		#TODO: Добавить удаление директории и форм при деинсталляции
+	/**
+	 * @see Plugin::uninstall()
+	 */
+	public function uninstall()
+	{
+		$tmplDir = $GLOBALS['Eresus']->froot . 'templates/' . $this->name;
+		if (is_dir($tmplDir))
+		{
+			$it = new RecursiveDirectoryIterator($tmplDir, RecursiveDirectoryIterator::SKIP_DOTS);
+			foreach ($it as $file)
+			{
+				@unlink($file);
+			}
+		}
+		@rmdir($tmplDir);
 
+		parent::uninstall();
 	}
 	//-----------------------------------------------------------------------------
 
