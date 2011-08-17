@@ -71,18 +71,20 @@ class EForms extends Plugin
 	public $type = 'client,admin';
 
 	/**
-	 * Список доступных форм
+	 * Объект-помощник
 	 *
-	 * @var array
+	 * @var EForms_Helper
+	 * @since 1.01
 	 */
-	private $forms = null;
+	private $helper;
 
 	/**
-	 * Экземпляр объекта Templates
+	 * Интерфейс к формам
 	 *
-	 * @var object Templates
+	 * @var EForms_Forms
+	 * @since 1.01
 	 */
-	private $templates = null;
+	private $forms;
 
 	/**
 	 * Констурктор
@@ -92,7 +94,7 @@ class EForms extends Plugin
 	public function __construct()
 	{
 		parent::__construct();
-		$this->listenEvents('clientOnContentRender', 'clientOnPageRender');
+		$this->listenEvents('clientOnContentRender', 'clientOnPageRender', 'adminOnMenuRender');
 	}
 	//-----------------------------------------------------------------------------
 
@@ -136,52 +138,38 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Получить объект Templates
+	 * Возвращает объект-помщник
 	 *
-	 * @return object Templates
+	 * @return EForms_Helper
+	 *
+	 * @since 1.01
 	 */
-	public function getTemplates()
+	public function getHelper()
 	{
-		if (is_null($this->templates))
+		if (!$this->helper)
 		{
-			useLib('templates');
-			$this->templates = new Templates();
+			$this->verifyClassLoaded('EForms_Helper');
+			$this->helper = new EForms_Helper($this);
 		}
-
-		return $this->templates;
+		return $this->helper;
 	}
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Получить список доступных форм
+	 * Возвращает интерфейс к формам
 	 *
-	 * @return array
+	 * @return EForms_Forms
+	 *
+	 * @since 1.01
 	 */
 	public function getForms()
 	{
-		if (is_null($this->forms))
+		if (!$this->forms)
 		{
-			$templates = $this->getTemplates();
-			$this->forms = $templates->enum($this->name);
+			$this->verifyClassLoaded('EForms_Forms');
+			$this->forms = new EForms_Forms($this);
 		}
-
 		return $this->forms;
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
-	 * Получить код формы
-	 *
-	 * @param string $name
-	 * @return string
-	 */
-	public function getFormCode($name)
-	{
-
-		$templates = $this->getTemplates();
-		$form = $templates ? $templates->get($name, $this->name) : false;
-
-		return $form;
 	}
 	//-----------------------------------------------------------------------------
 
@@ -207,9 +195,10 @@ class EForms extends Plugin
 	 */
 	public function buildForm($macros)
 	{
+		$this->verifyClassLoaded('EForms_Form');
 		$result = $macros[0];
 
-		$form = new EForm($this, $macros[1]);
+		$form = new EForms_Form($this, $macros[1]);
 
 		if ($form->valid())
 		{
@@ -226,12 +215,65 @@ class EForms extends Plugin
 	 */
 	public function clientOnContentRender($content)
 	{
+		$this->verifyClassLoaded('EForms_Form');
 		if (arg('ext') == $this->name)
 		{
-			$form = new EForm($this, arg('form', 'word'));
+			$form = new EForms_Form($this, arg('form', 'word'));
 			$content = $form->processActions();
 		}
 		return $content;
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Интерфейс управления формами
+	 *
+	 * @return string  HTML
+	 *
+	 * @since 1.00
+	 */
+	public function adminRender()
+	{
+		$this->verifyClassLoaded('EForms_AdminUI');
+		$ui = new EForms_AdminUI($this);
+		return $ui->getHTML();
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Добавляет пункт "Формы ввода" в меню "Расширения"
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function adminOnMenuRender()
+	{
+		$GLOBALS['page']->addMenuItem(admExtensions, array(
+			'access'  => EDITOR,
+			'link'  => $this->name,
+			'caption'  => 'Формы ввода',
+			'hint'  => $this->description
+		));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Убеждается что нужный класс загружен
+	 *
+	 * @param string $className
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	private function verifyClassLoaded($className)
+	{
+		if (!class_exists($className))
+		{
+			require_once dirname(__FILE__) . '/' . $this->name . '/classes/' .
+				substr($className, strlen('EForms_')) . '.php';
+		}
 	}
 	//-----------------------------------------------------------------------------
 }
