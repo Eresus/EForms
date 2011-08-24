@@ -99,7 +99,7 @@ class EForms_Form
 		$this->owner = $owner; #TODO: Check $owner class
 		$this->name = $name;
 
-		$code = $this->owner->getFormCode($name);
+		$code = $this->owner->getForms()->getFormCode($name);
 
 		if ($code)
 		{

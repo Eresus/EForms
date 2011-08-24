@@ -139,11 +139,20 @@ class EForms_AdminUI
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'action', 'value' => 'create'),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Название'),
-					'width' => '99%'),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя файла'),
-					'width'=>'16em', 'comment' => '.html'),
-				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html'),
+				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+					'width' => '99%', 'value' => arg('title')),
+				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
+					'width'=>'16em', 'value' => arg('name'), 'comment' => iconv('utf-8', CHARSET,
+					'только латинские буквы, цифры, символы минус и подчёркивание'),
+					'pattern' => '/^[\w\-]+$/i',
+					'errormsg' => iconv('utf-8', CHARSET,
+					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+				array('type' => 'text',
+					'value' => '&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
+					iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
+					'value' => arg('code') ? arg('code') :
+					'<form xmlns:ef="http://procreat.ru/eresus2/ext/eforms" method="post">' .	"\n</form>"),
 			),
 			'buttons' => array('ok','cancel'),
 		);
@@ -171,15 +180,24 @@ class EForms_AdminUI
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'update', 'value' => $item['name']),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Название'),
-					'width' => '99%'),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя файла'),
-					'width'=>'16em', 'comment' => '.html'),
-				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html'),
+				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+					'width' => '99%', 'value' => arg('title') ? arg('title') : $item['title']),
+				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
+					'width'=>'16em', 'comment' => iconv('utf-8', CHARSET,
+					'только латинские буквы, цифры, символы минус и подчёркивание'),
+					'value' => arg('name') ? arg('name') : $item['name'],
+					'pattern' => '/^[\w\-]+$/i',
+					'errormsg' => iconv('utf-8', CHARSET,
+					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+				array('type' => 'text',
+					'value' => '&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
+					iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
+					'value' => arg('code') ? arg('code') : $item['code']),
 			),
 			'buttons' => array('ok', 'apply', 'cancel'),
 		);
-		return $GLOBALS['page']->renderForm($form, $item);
+		return $GLOBALS['page']->renderForm($form);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -193,8 +211,17 @@ class EForms_AdminUI
 	private function actionCreate()
 	{
 		$forms = $this->plugin->getForms();
-		$forms->add(arg('name'), arg('code'), arg('title'));
-		HTTP::redirect(arg('submitURL'));
+		$name = arg('name');
+		if (count($forms->get($newName)) > 1)
+		{
+			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
+			return $this->actionAddDialog();
+		}
+		else
+		{
+			$forms->add($name, arg('code'), arg('title'));
+			HTTP::redirect(arg('submitURL'));
+		}
 	}
 	//-----------------------------------------------------------------------------
 
@@ -210,15 +237,23 @@ class EForms_AdminUI
 		$oldName = arg('update');
 		$newName = arg('name');
 		$forms = $this->plugin->getForms();
-		$forms->update($oldName, arg('code'), arg('title'));
-
-		$url = arg('submitURL');
-		if ($oldName != $newName)
+		if ($oldName != $newName && count($forms->get($newName)) > 1)
 		{
-			$forms->rename($oldName, $newName);
-			$url = str_replace('edit=' . $oldName, 'edit=' . $newName, $url);
+			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
+			return $this->actionEditDialog($oldName);
 		}
-		HTTP::redirect($url);
+		else
+		{
+			$forms->update($oldName, arg('code'), arg('title'));
+
+			$url = arg('submitURL');
+			if ($oldName != $newName)
+			{
+				$forms->rename($oldName, $newName);
+				$url = str_replace('edit=' . $oldName, 'edit=' . $newName, $url);
+			}
+			HTTP::redirect($url);
+		}
 	}
 	//-----------------------------------------------------------------------------
 
