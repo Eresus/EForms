@@ -70,17 +70,70 @@ class EForms_Forms
 	/**
 	 * Добавляет новую форму
 	 *
-	 * @param string $name  имя файла (без пути и расширения)
-	 * @param string $code  код формы
+	 * @param string $name   имя файла (без пути и расширения)
+	 * @param string $code   код формы
+	 * @param string $title  название формы
 	 *
 	 * @return void
 	 *
 	 * @since 1.01
 	 */
-	public function add($name, $code)
+	public function add($name, $code, $title)
 	{
 		$templates = $this->getTemplates();
-		$templates->add($name, $this->plugin->name, $code);
+		$templates->add($name, $this->plugin->name, $code, $title);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Изменяет форму
+	 *
+	 * @param string $name   имя файла (без пути и расширения)
+	 * @param string $code   код формы
+	 * @param string $title  название формы
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	public function update($name, $code, $title)
+	{
+		$templates = $this->getTemplates();
+		$templates->update($name, $this->plugin->name, $code, $title);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Переименовывает форму
+	 *
+	 * @param string $oldName   старое имя файла (без пути и расширения)
+	 * @param string $newName   новое имя файла (без пути и расширения)
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	public function rename($oldName, $newName)
+	{
+		$form = $this->get($oldName);
+		$this->delete($oldName);
+		$this->add($newName, $form['code'], $form['title']);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Удаляет форму
+	 *
+	 * @param string $name  имя файла (без пути и расширения)
+	 *
+	 * @return void
+	 *
+	 * @since 1.00
+	 */
+	public function delete($name)
+	{
+		$templates = $this->getTemplates();
+		$templates->delete($name, $this->plugin->name);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -99,18 +152,37 @@ class EForms_Forms
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * Возвращает форму
+	 *
+	 * @param string $name
+	 *
+	 * @return array
+	 *
+	 * @since 1.01
+	 */
+	public function get($name)
+	{
+		$templates = $this->getTemplates();
+		$form = $templates->get($name, $this->plugin->name, true);
+		$form['title'] = $form['desc'];
+		unset($form['desc']);
+		return $form;
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * Получить код формы
 	 *
 	 * @param string $name
+	 *
 	 * @return string
+	 *
+	 * @since 1.01
 	 */
 	public function getFormCode($name)
 	{
-
 		$templates = $this->getTemplates();
-		$form = $templates ? $templates->get($name, $this->name) : false;
-
-		return $form;
+		return $templates->get($name, $this->plugin->name);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -118,6 +190,8 @@ class EForms_Forms
 	 * Возвращает объект Templates
 	 *
 	 * @return Templates
+	 *
+	 * @since 1.01
 	 */
 	private function getTemplates()
 	{

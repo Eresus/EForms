@@ -1,9 +1,21 @@
-<a href="?mod=ext-{$plugin->name}&action=add">Создать новую форму</a>
+<div class="legacy-tabs ui-helper-clearfix">
+	<a href="{$rootURL}&action=add">Создать новую форму</a>
+</div>
 
-<ul>
-	{foreach $items title}
-	<li>
-		{$title}
-	</li>
+<table class="admList">
+	<tr>
+		<th></th>
+		<th>Форма</th>
+		<th>Файл</th>
+	</tr>
+	{foreach $items file title}
+	<tr>
+		<td class="ctrl">
+			<a title="Изменить" href="{$rootURL}&edit={$file}"><img width="16" height="16" alt="Изменить" src="{$Eresus->root}admin/themes/default/img/medium/item-edit.png"></a>
+			<a title="Удалить" href="{$rootURL}&delete={$file}" onclick="return askdel(this)"><img width="16" height="16" alt="Удалить" src="{$Eresus->root}admin/themes/default/img/medium/item-delete.png"></a>
+		</td>
+		<td>{$title}</td>
+		<td>{$plugin->name}/{$file}.html</td>
+	</tr>
 	{/foreach}
-</ul>
+</table>

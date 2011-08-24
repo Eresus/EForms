@@ -82,7 +82,24 @@ class EForms_AdminUI
 			break;
 
 			default:
-				$html = $this->actionIndex();
+
+				switch (true)
+				{
+					case arg('edit'):
+						$html = $this->actionEditDialog(arg('edit'));
+					break;
+
+					case arg('update'):
+						$html = $this->actionUpdate();
+					break;
+
+					case arg('delete'):
+						$html = $this->actionDelete(arg('delete'));
+					break;
+
+					default:
+						$html = $this->actionIndex();
+				}
 			break;
 		}
 		return $html;
@@ -100,6 +117,7 @@ class EForms_AdminUI
 	{
 		$tmpl = $this->plugin->getHelper()->getAdminTemplate('list.html');
 		$vars = $this->plugin->getHelper()->prepareTmplData();
+		$vars['rootURL'] = $GLOBALS['page']->url();
 		$forms = $this->plugin->getForms();
 		$vars['items'] = $forms->getList();
 		return $tmpl->compile($vars);
@@ -115,9 +133,53 @@ class EForms_AdminUI
 	 */
 	private function actionAddDialog()
 	{
-		$tmpl = $this->plugin->getHelper()->getAdminTemplate('add.html');
-		$vars = $this->plugin->getHelper()->prepareTmplData();
-		return $tmpl->compile($vars);
+		$form = array(
+			'name' => 'add',
+			'caption' => iconv('utf-8', CHARSET, 'Добавление формы'),
+			'width' => '100%',
+			'fields' => array (
+				array('type' => 'hidden','name' => 'action', 'value' => 'create'),
+				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Название'),
+					'width' => '99%'),
+				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя файла'),
+					'width'=>'16em', 'comment' => '.html'),
+				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html'),
+			),
+			'buttons' => array('ok','cancel'),
+		);
+		return $GLOBALS['page']->renderForm($form);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Диалог изменения формы
+	 *
+	 * @param string $name
+	 *
+	 * @return string
+	 *
+	 * @since 1.01
+	 */
+	private function actionEditDialog($name)
+	{
+		$forms = $this->plugin->getForms();
+		$item = $forms->get($name);
+
+		$form = array(
+			'name' => 'edit',
+			'caption' => $item['title'],
+			'width' => '100%',
+			'fields' => array (
+				array('type' => 'hidden','name' => 'update', 'value' => $item['name']),
+				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Название'),
+					'width' => '99%'),
+				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя файла'),
+					'width'=>'16em', 'comment' => '.html'),
+				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html'),
+			),
+			'buttons' => array('ok', 'apply', 'cancel'),
+		);
+		return $GLOBALS['page']->renderForm($form, $item);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -131,8 +193,49 @@ class EForms_AdminUI
 	private function actionCreate()
 	{
 		$forms = $this->plugin->getForms();
-		$forms->add(arg('name'), arg('code'));
-		HTTP::redirect('admin.php?mod=ext-' . $this->plugin->name);
+		$forms->add(arg('name'), arg('code'), arg('title'));
+		HTTP::redirect(arg('submitURL'));
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Обновляет форму
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	private function actionUpdate()
+	{
+		$oldName = arg('update');
+		$newName = arg('name');
+		$forms = $this->plugin->getForms();
+		$forms->update($oldName, arg('code'), arg('title'));
+
+		$url = arg('submitURL');
+		if ($oldName != $newName)
+		{
+			$forms->rename($oldName, $newName);
+			$url = str_replace('edit=' . $oldName, 'edit=' . $newName, $url);
+		}
+		HTTP::redirect($url);
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Удаляет форму
+	 *
+	 * @param string $name
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	private function actionDelete($name)
+	{
+		$forms = $this->plugin->getForms();
+		$forms->delete($name);
+		HTTP::redirect($GLOBALS['page']->url());
 	}
 	//-----------------------------------------------------------------------------
 }
