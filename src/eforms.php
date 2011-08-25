@@ -268,7 +268,7 @@ class EForms extends Plugin
 	 *
 	 * @since 1.01
 	 */
-	private function verifyClassLoaded($className)
+	public function verifyClassLoaded($className)
 	{
 		if (!class_exists($className))
 		{

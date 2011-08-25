@@ -340,7 +340,14 @@ class EForms_Form
 				}
 				if ($name)
 				{
-					$data[$name]['data'] = arg($name);
+					if ($element->getAttribute('type') == 'file')
+					{
+						$data[$name]['file'] = $_FILES[$name];
+					}
+					else
+					{
+						$data[$name]['data'] = arg($name);
+					}
 					$data[$name]['label'] = $this->getLabelAttr($element);
 					if (!$data[$name]['label'])
 					{
@@ -383,41 +390,56 @@ class EForms_Form
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Process 'mailto' action
+	 * Выполняет действие 'mailto'
 	 *
 	 * @param DOMElement $action
+	 *
+	 * @uses EForms::verifyClassLoaded()
 	 */
 	protected function actionMailto($action)
 	{
-		$to = $action->getAttribute('to');
-		$subj = $action->getAttribute('subj');
-		if ($subj)
-		{
-			$subj = iconv('utf-8', CHARSET, $subj);
-		}
-		#$from = $action->getAttribute('from');
-		$data = $this->getFormData();
+		$this->owner->verifyClassLoaded('EForms_Mail');
+		$mail = new EForms_Mail();
 
-		if (!$to)
+		if (!($to = $action->getAttribute('to')))
 		{
 			return false;
 		}
-		if (!$subj)
+		$mail->addTo($to);
+
+		if (!($subj = $action->getAttribute('subj')))
 		{
 			$subj = $this->name;
 		}
-		#$from = $action->getAttribute('from');
+		$subj = iconv('utf-8', CHARSET, $subj);
+		$mail->setSubject($subj);
+
+		$data = $this->getFormData();
 
 		$text = '';
-		foreach ($data as $item)
+		$files = array();
+		foreach ($data as $name => $item)
 		{
 			if (!isset($item['label']))
 			{
 				continue;
 			}
-			$text .= $item['label'].': '.$item['data']."\n";
+			if (isset($item['data']))
+			{
+				$text .= $item['label'].': '.$item['data']."\n";
+			}
+			elseif (isset($item['file']))
+			{
+				$filename = tempnam($GLOBALS['Eresus']->fdata, $this->owner->name);
+				upload($name, $filename, true);
+				list ($contentType, $mimeType) = explode('/', $item['file']['type']);
+				$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
+					$mimeType);
+				unlink($filename);
+			}
 		}
-		sendMail($to, $subj, $text);
+		$mail->setText($text);
+		$mail->send();
 	}
 	//-----------------------------------------------------------------------------
 
