@@ -104,15 +104,16 @@ class EForms_Form
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Get HTML form markup
+	 * Возвращает HTML-разметку формы
 	 *
 	 * @return string
 	 */
 	public function getHTML()
 	{
+		$this->parse();
 		$xml = clone $this->xml;
 
-		# Clean extended tags
+		/* Удаляем расширенные теги */
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
 		for ($i=0; $i<$tags->length; $i++)
 		{
@@ -120,7 +121,13 @@ class EForms_Form
 			$node->parentNode->removeChild($node);
 		}
 
-		# Clean extended attrs
+		// Есть ли поля для выбора файлов?
+		$hasFileInputs = false;
+
+		/*
+		 * Удаляем расширенные атрибуты
+		 * Ищем input[type=file]
+		 */
 		$tags = $xml->getElementsByTagName('*');
 		for ($i=0; $i<$tags->length; $i++)
 		{
@@ -134,16 +141,26 @@ class EForms_Form
 				$attrs = $node->attributes;
 				for ($j=0; $j<$attrs->length; $j++)
 				{
-					$node = $attrs->item($j);
-					if ($node->namespaceURI == self::NS)
+					$attr = $attrs->item($j);
+					if ($attr->namespaceURI == self::NS)
 					{
-						$node->ownerElement->removeAttributeNode($node);
+						$attr->ownerElement->removeAttributeNode($attr);
 					}
+				}
+
+				if ($node->tagName == 'input' && $node->getAttribute('type') == 'file')
+				{
+					$hasFileInputs = true;
 				}
 			}
 		}
 
-		# Prevent em[ty textareas from collapsing
+		if ($hasFileInputs)
+		{
+			$xml->firstChild->nextSibling->setAttribute('enctype', 'multipart/form-data');
+		}
+
+		// Предотавращяем схлопывание пустых textarea
 		$tags = $xml->getElementsByTagName('textarea');
 		for ($i=0; $i<$tags->length; $i++)
 		{
@@ -154,14 +171,52 @@ class EForms_Form
 
 		$xml->formatOutput = true;
 		$html = $xml->saveXML($xml->firstChild->nextSibling);
-		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
-		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
+		// Удаляем атрибуты пространств имён
+		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html);
+		// Удаляем пустые <![CDATA[]]>
+		$html = str_replace('<![CDATA[]]>', '', $html);
 		if (strtolower(CHARSET) != 'utf-8')
 		{
 			$html = iconv('utf-8', CHARSET, $html);
 		}
 
 		return $html;
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
+	 * Process form actions
+	 *
+	 */
+	public function processActions()
+	{
+		global $Eresus;
+
+		$this->parse();
+		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
+
+		if ($actionsElement)
+		{
+			$actions = $actionsElement->item(0)->childNodes;
+			for ($i = 0; $i < $actions->length; $i++)
+			{
+				$action = $actions->item($i);
+				if ($action->nodeType == XML_ELEMENT_NODE)
+				{
+					$this->processAction($action);
+				}
+			}
+		}
+
+		if ($this->redirect)
+		{
+			HTTP::redirect($this->redirect);
+		}
+		if ($this->html)
+		{
+			return $this->html;
+		}
+		HTTP::redirect($Eresus->request['referer']);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -174,7 +229,7 @@ class EForms_Form
 	 */
 	protected function parse()
 	{
-		$code = $this->owner->getForms()->getFormCode($name);
+		$code = $this->owner->getForms()->getFormCode($this->name);
 
 		if ($code)
 		{
@@ -308,41 +363,6 @@ class EForms_Form
 		}
 
 		return $data;
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
-	 * Process form actions
-	 *
-	 */
-	public function processActions()
-	{
-		global $Eresus;
-
-		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
-
-		if ($actionsElement)
-		{
-			$actions = $actionsElement->item(0)->childNodes;
-			for ($i = 0; $i < $actions->length; $i++)
-			{
-				$action = $actions->item($i);
-				if ($action->nodeType == XML_ELEMENT_NODE)
-				{
-					$this->processAction($action);
-				}
-			}
-		}
-
-		if ($this->redirect)
-		{
-			HTTP::redirect($this->redirect);
-		}
-		if ($this->html)
-		{
-			return $this->html;
-		}
-		HTTP::redirect($Eresus->request['referer']);
 	}
 	//-----------------------------------------------------------------------------
 
