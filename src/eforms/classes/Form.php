@@ -104,6 +104,68 @@ class EForms_Form
 	//-----------------------------------------------------------------------------
 
 	/**
+	 * Get HTML form markup
+	 *
+	 * @return string
+	 */
+	public function getHTML()
+	{
+		$xml = clone $this->xml;
+
+		# Clean extended tags
+		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
+		for ($i=0; $i<$tags->length; $i++)
+		{
+			$node = $tags->item($i);
+			$node->parentNode->removeChild($node);
+		}
+
+		# Clean extended attrs
+		$tags = $xml->getElementsByTagName('*');
+		for ($i=0; $i<$tags->length; $i++)
+		{
+			$node = $tags->item($i);
+
+			$isElement = $node->nodeType == XML_ELEMENT_NODE;
+			$hasAttributes = $isElement && $node->hasAttributes();
+
+			if ($isElement && $hasAttributes)
+			{
+				$attrs = $node->attributes;
+				for ($j=0; $j<$attrs->length; $j++)
+				{
+					$node = $attrs->item($j);
+					if ($node->namespaceURI == self::NS)
+					{
+						$node->ownerElement->removeAttributeNode($node);
+					}
+				}
+			}
+		}
+
+		# Prevent em[ty textareas from collapsing
+		$tags = $xml->getElementsByTagName('textarea');
+		for ($i=0; $i<$tags->length; $i++)
+		{
+			$node = $tags->item($i);
+			$cdata = $xml->createCDATASection('');
+			$node->appendChild($cdata);
+		}
+
+		$xml->formatOutput = true;
+		$html = $xml->saveXML($xml->firstChild->nextSibling);
+		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
+		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
+		if (strtolower(CHARSET) != 'utf-8')
+		{
+			$html = iconv('utf-8', CHARSET, $html);
+		}
+
+		return $html;
+	}
+	//-----------------------------------------------------------------------------
+
+	/**
 	 * Производит разбор кода формы
 	 *
 	 * @return void
@@ -174,79 +236,6 @@ class EForms_Form
 		$div->appendChild($input);
 
 		$form->appendChild($div);
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
-	 * Return TRUE if form loaded and it is valid
-	 *
-	 * @return bool
-	 */
-	public function valid()
-	{
-		return is_object($this->xml);
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
-	 * Get HTML form markup
-	 *
-	 * @return string
-	 */
-	public function getHTML()
-	{
-		$xml = clone $this->xml;
-
-		# Clean extended tags
-		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
-		for ($i=0; $i<$tags->length; $i++)
-		{
-			$node = $tags->item($i);
-			$node->parentNode->removeChild($node);
-		}
-
-		# Clean extended attrs
-		$tags = $xml->getElementsByTagName('*');
-		for ($i=0; $i<$tags->length; $i++)
-		{
-			$node = $tags->item($i);
-
-			$isElement = $node->nodeType == XML_ELEMENT_NODE;
-			$hasAttributes = $isElement && $node->hasAttributes();
-
-			if ($isElement && $hasAttributes)
-			{
-				$attrs = $node->attributes;
-				for ($j=0; $j<$attrs->length; $j++)
-				{
-					$node = $attrs->item($j);
-					if ($node->namespaceURI == self::NS)
-					{
-						$node->ownerElement->removeAttributeNode($node);
-					}
-				}
-			}
-		}
-
-		# Prevent em[ty textareas from collapsing
-		$tags = $xml->getElementsByTagName('textarea');
-		for ($i=0; $i<$tags->length; $i++)
-		{
-			$node = $tags->item($i);
-			$cdata = $xml->createCDATASection('');
-			$node->appendChild($cdata);
-		}
-
-		$xml->formatOutput = true;
-		$html = $xml->saveXML($xml->firstChild->nextSibling);
-		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
-		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
-		if (strtolower(CHARSET) != 'utf-8')
-		{
-			$html = iconv('utf-8', CHARSET, $html);
-		}
-
-		return $html;
 	}
 	//-----------------------------------------------------------------------------
 

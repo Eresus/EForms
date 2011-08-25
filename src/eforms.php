@@ -196,16 +196,17 @@ class EForms extends Plugin
 	public function buildForm($macros)
 	{
 		$this->verifyClassLoaded('EForms_Form');
-		$result = $macros[0];
 
-		$form = new EForms_Form($this, $macros[1]);
-
-		if ($form->valid())
+		try
 		{
-			$result = $form->getHTML();
+			$form = new EForms_Form($this, $macros[1]);
+		}
+		catch (Exception $e)
+		{
+			return $macros[0];
 		}
 
-		return $result;
+		return $form->getHTML();
 	}
 	//-----------------------------------------------------------------------------
 
