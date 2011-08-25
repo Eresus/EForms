@@ -100,7 +100,18 @@ class EForms_Form
 	{
 		$this->owner = $owner;
 		$this->name = $name;
+	}
+	//-----------------------------------------------------------------------------
 
+	/**
+	 * Производит разбор кода формы
+	 *
+	 * @return void
+	 *
+	 * @since 1.01
+	 */
+	protected function parse()
+	{
 		$code = $this->owner->getForms()->getFormCode($name);
 
 		if ($code)
