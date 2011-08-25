@@ -61,42 +61,44 @@ class EForms_Form
 	protected $name;
 
 	/**
-	 * Raw form code
+	 * Сырой код
 	 *
 	 * @var string
 	 */
 	protected $code;
 
 	/**
-	 * XML representation
+	 * XML-представление
 	 *
 	 * @var DOMDocument
 	 */
 	protected $xml;
 
 	/**
-	 * URL for redirect
+	 * URL для перенаправления
 	 *
 	 * @var mixed
 	 */
 	protected $redirect = false;
 
 	/**
-	 * Contents of 'html' actions
+	 * Содержимое тега <html>
 	 *
 	 * @var string
 	 */
 	protected $html = '';
 
 	/**
-	 * Constructor
+	 * Конструктор
 	 *
-	 * @param TPlugin $owner  Plugin
-	 * @param string  $name   Form name
+	 * @param EForms $owner  Плагин-владелец
+	 * @param string $name   Имя формы
+	 *
+	 * @return EForms_Form
 	 */
-	public function __construct($owner, $name)
+	public function __construct(EForms $owner, $name)
 	{
-		$this->owner = $owner; #TODO: Check $owner class
+		$this->owner = $owner;
 		$this->name = $name;
 
 		$code = $this->owner->getForms()->getFormCode($name);
