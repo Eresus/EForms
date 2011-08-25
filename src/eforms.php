@@ -50,7 +50,7 @@ class EForms extends Plugin
 	 * Требуемая версия ядра
 	 * @var string
 	 */
-	public $kernel = '2.12b';
+	public $kernel = '2.14';
 
 	/**
 	 * Название плагина

@@ -111,6 +111,12 @@ class EForms_Form
 			{
 				$code = iconv(CHARSET, 'utf-8', $code);
 			}
+			$code =
+				'<!DOCTYPE root[' .
+				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-lat1.ent') .
+				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-special.ent') .
+        ']>' .
+				$code;
 			$this->xml->loadXML($code);
 			$this->xml->encoding = 'utf-8';
 			$this->xml->normalize();
@@ -219,7 +225,7 @@ class EForms_Form
 		}
 
 		$xml->formatOutput = true;
-		$html = $xml->saveXML($xml->firstChild); # This exclude xml declaration
+		$html = $xml->saveXML($xml->firstChild->nextSibling);
 		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html); # Remove ns attrs
 		$html = str_replace('<![CDATA[]]>', '', $html); # Remove empty <![CDATA[]]> sections
 		if (strtolower(CHARSET) != 'utf-8')
