@@ -24,7 +24,7 @@
  * GNU с этой программой. Если Вы ее не получили, смотрите документ на
  * <http://www.gnu.org/licenses/>
  *
- * @package EForms
+ * @package E-Forms
  *
  * $Id$
  */
@@ -33,7 +33,7 @@
 /**
  * Отправка почты
  *
- * @package Mail
+ * @package E-Forms
  * @since 1.00
  */
 class EForms_Mail
