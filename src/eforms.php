@@ -204,6 +204,7 @@ class EForms extends Plugin
 		catch (Exception $e)
 		{
 			return $macros[0];
+			$e = $e; // PHPMD hack
 		}
 
 		return $form->getHTML();

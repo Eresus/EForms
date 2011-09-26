@@ -417,7 +417,6 @@ class EForms_Form
 		$data = $this->getFormData();
 
 		$text = '';
-		$files = array();
 		foreach ($data as $name => $item)
 		{
 			if (!isset($item['label']))
