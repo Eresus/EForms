@@ -76,7 +76,6 @@
 			standard="Eresus"
 			haltonerror="false"
 		>
-			<config name="encoding" value="utf-8" />
 			<formatter
 				type="${phpcs.format}"
 				outfile="${logs.dir}/phpcs.${phpcs.format}"
