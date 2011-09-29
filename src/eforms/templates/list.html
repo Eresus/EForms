@@ -15,7 +15,7 @@
 			<a title="Удалить" href="{$rootURL}&delete={$file}" onclick="return askdel(this)"><img width="16" height="16" alt="Удалить" src="{$Eresus->root}admin/themes/default/img/medium/item-delete.png"></a>
 		</td>
 		<td>{$file}</td>
-		<td>{$title}</td>
+		<td>{if $title != 'admNoTitle'}{$title}{/if}</td>
 	</tr>
 	{/foreach}
 </table>
