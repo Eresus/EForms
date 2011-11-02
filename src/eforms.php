@@ -4,7 +4,7 @@
  *
  * Расширенные HTML-формы
  *
- * @version 1.01
+ * @version ${product.version}
  *
  * @copyright 2008, Eresus Group, http://eresus.ru/
  * @copyright 2010, ООО "Два слона", http://dvaslona.ru/
@@ -44,7 +44,7 @@ class EForms extends Plugin
 	 * Версия плагина
 	 * @var string
 	 */
-	public $version = '1.01a';
+	public $version = '${product.version}';
 
 	/**
 	 * Требуемая версия ядра
