@@ -175,10 +175,6 @@ class EForms_Form
 		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html);
 		// Удаляем пустые <![CDATA[]]>
 		$html = str_replace('<![CDATA[]]>', '', $html);
-		if (strtolower(CHARSET) != 'utf-8')
-		{
-			$html = iconv('utf-8', CHARSET, $html);
-		}
 
 		return $html;
 	}
@@ -237,10 +233,6 @@ class EForms_Form
 			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
 				'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
 			$this->xml = $imp->createDocument("", "", $dtd);
-			if (strtolower(CHARSET) != 'utf-8')
-			{
-				$code = iconv(CHARSET, 'utf-8', $code);
-			}
 			$code =
 				'<!DOCTYPE root[' .
 				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-lat1.ent') .
@@ -303,10 +295,6 @@ class EForms_Form
 	protected function getLabelAttr($element)
 	{
 		$label = $element->getAttributeNS(self::NS, 'label');
-		if ($label)
-		{
-			$label = iconv('utf-8', CHARSET, $label);
-		}
 		return $label;
 	}
 	//-----------------------------------------------------------------------------
@@ -411,7 +399,6 @@ class EForms_Form
 		{
 			$subj = $this->name;
 		}
-		$subj = iconv('utf-8', CHARSET, $subj);
 		$mail->setSubject($subj);
 
 		$data = $this->getFormData();
@@ -477,10 +464,6 @@ class EForms_Form
 			for ($i = 0; $i < $elements->length; $i++)
 			{
 				$html .= $this->xml->saveXML($elements->item($i));
-			}
-			if (strtolower(CHARSET) != 'utf-8')
-			{
-				$html = iconv('utf-8', CHARSET, $html);
 			}
 			$this->html .= $html;
 		}

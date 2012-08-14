@@ -135,22 +135,22 @@ class EForms_AdminUI
 	{
 		$form = array(
 			'name' => 'add',
-			'caption' => iconv('utf-8', CHARSET, 'Добавление формы'),
+			'caption' => 'Добавление формы',
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'action', 'value' => 'create'),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
 					'width' => '99%', 'value' => arg('title')),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
-					'width'=>'16em', 'value' => arg('name'), 'comment' => iconv('utf-8', CHARSET,
-					'только латинские буквы, цифры, символы минус и подчёркивание'),
+				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+					'width'=>'16em', 'value' => arg('name'), 'comment' => 
+					'только латинские буквы, цифры, символы минус и подчёркивание',
 					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => iconv('utf-8', CHARSET,
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+					'errormsg' => 
+					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание',
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+						'Синтаксис форм</a></b>'),
 				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
 					'value' => arg('code') ? arg('code') :
 					'<form xmlns:ef="http://procreat.ru/eresus2/ext/eforms" method="post">' .	"\n</form>"),
@@ -181,19 +181,19 @@ class EForms_AdminUI
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'update', 'value' => $item['name']),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
 					'width' => '99%', 'value' => arg('title') ? arg('title') : $item['title']),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
-					'width'=>'16em', 'comment' => iconv('utf-8', CHARSET,
-					'только латинские буквы, цифры, символы минус и подчёркивание'),
+				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+					'width'=>'16em', 'comment' =>
+					'только латинские буквы, цифры, символы минус и подчёркивание',
 					'value' => arg('name') ? arg('name') : $item['name'],
 					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => iconv('utf-8', CHARSET,
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+					'errormsg' => 
+					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание',
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+						'Синтаксис форм</a></b>'),
 				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
 					'value' => arg('code') ? arg('code') : $item['code']),
 			),
@@ -216,7 +216,7 @@ class EForms_AdminUI
 		$name = arg('name');
 		if (count($forms->get($name)) > 1)
 		{
-			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
+			ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
 			return $this->actionAddDialog();
 		}
 		else
@@ -241,7 +241,7 @@ class EForms_AdminUI
 		$forms = $this->plugin->getForms();
 		if ($oldName != $newName && count($forms->get($newName)) > 1)
 		{
-			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
+			ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
 			return $this->actionEditDialog($oldName);
 		}
 		else
