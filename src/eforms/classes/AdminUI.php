@@ -70,7 +70,7 @@ class EForms_AdminUI
 	 */
 	public function getHTML()
 	{
-
+		$html = '';
 		switch (arg('action'))
 		{
 			case 'add':
@@ -94,7 +94,7 @@ class EForms_AdminUI
 					break;
 
 					case arg('delete'):
-						$html = $this->actionDelete(arg('delete'));
+						$this->actionDelete(arg('delete'));
 					break;
 
 					default:
@@ -206,7 +206,7 @@ class EForms_AdminUI
 	/**
 	 * Сохраняет новую форму
 	 *
-	 * @return void
+	 * @return string
 	 *
 	 * @since 1.01
 	 */
@@ -214,23 +214,20 @@ class EForms_AdminUI
 	{
 		$forms = $this->plugin->getForms();
 		$name = arg('name');
-		if (count($forms->get($name)) > 1)
-		{
-			ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
-			return $this->actionAddDialog();
-		}
-		else
+		if (count($forms->get($name)) == 0)
 		{
 			$forms->add($name, arg('code'), arg('title'));
 			HTTP::redirect(arg('submitURL'));
 		}
+		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+		return $this->actionAddDialog();
 	}
 	//-----------------------------------------------------------------------------
 
 	/**
 	 * Обновляет форму
 	 *
-	 * @return void
+	 * @return string
 	 *
 	 * @since 1.01
 	 */
@@ -239,12 +236,7 @@ class EForms_AdminUI
 		$oldName = arg('update');
 		$newName = arg('name');
 		$forms = $this->plugin->getForms();
-		if ($oldName != $newName && count($forms->get($newName)) > 1)
-		{
-			ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
-			return $this->actionEditDialog($oldName);
-		}
-		else
+		if ($oldName != $newName && count($forms->get($newName)) == 0)
 		{
 			$forms->update($oldName, arg('code'), arg('title'));
 
@@ -256,6 +248,8 @@ class EForms_AdminUI
 			}
 			HTTP::redirect($url);
 		}
+		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+		return $this->actionEditDialog($oldName);
 	}
 	//-----------------------------------------------------------------------------
 

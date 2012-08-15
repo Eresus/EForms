@@ -87,7 +87,7 @@ class EForms extends Plugin
 	private $forms;
 
 	/**
-	 * Констурктор
+	 * Конструктор
 	 *
 	 * @return EForms
 	 */
@@ -138,7 +138,7 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Возвращает объект-помщник
+	 * Возвращает объект-помощник
 	 *
 	 * @return EForms_Helper
 	 *
@@ -204,7 +204,6 @@ class EForms extends Plugin
 		catch (Exception $e)
 		{
 			return $macros[0];
-			$e = $e; // PHPMD hack
 		}
 
 		return $form->getHTML();
@@ -273,6 +272,7 @@ class EForms extends Plugin
 	{
 		if (!class_exists($className))
 		{
+			/** @noinspection PhpIncludeInspection */
 			require_once dirname(__FILE__) . '/' . $this->name . '/classes/' .
 				substr($className, strlen('EForms_')) . '.php';
 		}

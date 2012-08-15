@@ -58,8 +58,6 @@ class EForms_Forms
 	 * Конструктор
 	 *
 	 * @param EForms $plugin
-	 *
-	 * @return EForms_Helper
 	 */
 	public function __construct(EForms $plugin)
 	{

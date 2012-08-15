@@ -40,7 +40,7 @@
 class EForms_Form
 {
 	/**
-	 * Пространство имём XML
+	 * Пространство имён XML
 	 *
 	 * @todo постепенно заменить на «http://eresus.ru/specs/cms/plugins/eforms»
 	 */
@@ -117,8 +117,8 @@ class EForms_Form
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
 		for ($i=0; $i<$tags->length; $i++)
 		{
-			$node = $tags->item($i);
-			$node->parentNode->removeChild($node);
+			$node = $tags->item($i)->parentNode;
+			$node->removeChild($node);
 		}
 
 		// Есть ли поля для выбора файлов?
@@ -134,13 +134,16 @@ class EForms_Form
 			$node = $tags->item($i);
 
 			$isElement = $node->nodeType == XML_ELEMENT_NODE;
+			/** @var DOMElement $node */
 			$hasAttributes = $isElement && $node->hasAttributes();
 
 			if ($isElement && $hasAttributes)
 			{
+				/** @var DOMNamedNodeMap $attrs */
 				$attrs = $node->attributes;
 				for ($j=0; $j<$attrs->length; $j++)
 				{
+					/** @var DOMAttr $attr */
 					$attr = $attrs->item($j);
 					if ($attr->namespaceURI == self::NS)
 					{
@@ -157,10 +160,12 @@ class EForms_Form
 
 		if ($hasFileInputs)
 		{
-			$xml->firstChild->nextSibling->setAttribute('enctype', 'multipart/form-data');
+			/** @var DOMElement $element */
+			$element = $xml->firstChild->nextSibling;
+			$element->setAttribute('enctype', 'multipart/form-data');
 		}
 
-		// Предотавращяем схлопывание пустых textarea
+		// Предотвращаем схлопывание пустых textarea
 		$tags = $xml->getElementsByTagName('textarea');
 		for ($i=0; $i<$tags->length; $i++)
 		{
@@ -182,7 +187,6 @@ class EForms_Form
 
 	/**
 	 * Process form actions
-	 *
 	 */
 	public function processActions()
 	{
@@ -208,11 +212,11 @@ class EForms_Form
 		{
 			HTTP::redirect($this->redirect);
 		}
-		if ($this->html)
+		if (!$this->html)
 		{
-			return $this->html;
+			HTTP::redirect($Eresus->request['referer']);
 		}
-		HTTP::redirect($Eresus->request['referer']);
+		return $this->html;
 	}
 	//-----------------------------------------------------------------------------
 
@@ -256,6 +260,7 @@ class EForms_Form
 	{
 		global $Eresus;
 
+		/** @var DOMElement $form */
 		$form = $this->xml->getElementsByTagName('form')->item(0);
 		$form->setAttribute('action', $Eresus->request['path']);
 	}
@@ -310,7 +315,9 @@ class EForms_Form
 		$inputTagNames = array('input', 'textarea', 'select');
 		$skipNames = array('ext', 'form');
 
-		$elements = $this->xml->getElementsByTagName('form')->item(0)->getElementsByTagName('*');
+		/** @var DOMElement $element */
+		$element = $this->xml->getElementsByTagName('form')->item(0);
+		$elements = $element->getElementsByTagName('*');
 
 		for ($i = 0; $i < $elements->length; $i++)
 		{
@@ -364,9 +371,9 @@ class EForms_Form
 	/**
 	 * Process action directive
 	 *
-	 * @param DOMElement $action
+	 * @param DOMNode $action
 	 */
-	protected function processAction($action)
+	protected function processAction(DOMNode $action)
 	{
 		$actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS))+1);
 		$methodName = 'action'.$actionName;
@@ -391,7 +398,7 @@ class EForms_Form
 
 		if (!($to = $action->getAttribute('to')))
 		{
-			return false;
+			return;
 		}
 		$mail->addTo($to);
 
