@@ -214,7 +214,7 @@ class EForms_AdminUI
 	{
 		$forms = $this->plugin->getForms();
 		$name = arg('name');
-		if (count($forms->get($name)) == 0)
+		if ($forms->get($name) === false)
 		{
 			$forms->add($name, arg('code'), arg('title'));
 			HTTP::redirect(arg('submitURL'));
@@ -236,7 +236,7 @@ class EForms_AdminUI
 		$oldName = arg('update');
 		$newName = arg('name');
 		$forms = $this->plugin->getForms();
-		if ($oldName != $newName && count($forms->get($newName)) == 0)
+		if ($oldName == $newName || $forms->get($newName) === false)
 		{
 			$forms->update($oldName, arg('code'), arg('title'));
 
