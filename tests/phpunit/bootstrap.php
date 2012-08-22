@@ -32,9 +32,6 @@
 
 define('TESTS_SRC_DIR', realpath(__DIR__) . '/../../src');
 
-PHP_CodeCoverage_Filter::getInstance()->addFileToWhitelist(TESTS_SRC_DIR . '/eforms.php');
-PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist(TESTS_SRC_DIR . '/eforms');
-
 require_once 'vfsStream/vfsStream.php';
 
 

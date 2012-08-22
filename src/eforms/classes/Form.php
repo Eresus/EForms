@@ -115,10 +115,10 @@ class EForms_Form
 
 		/* Удаляем расширенные теги */
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
-		for ($i=0; $i<$tags->length; $i++)
+		while ($tags->length > 0)
 		{
-			$node = $tags->item($i)->parentNode;
-			$node->removeChild($node);
+			$node = $tags->item(0);
+			$node->parentNode->removeChild($node);
 		}
 
 		// Есть ли поля для выбора файлов?
@@ -141,10 +141,10 @@ class EForms_Form
 			{
 				/** @var DOMNamedNodeMap $attrs */
 				$attrs = $node->attributes;
-				for ($j=0; $j<$attrs->length; $j++)
+				while ($attrs->length > 0)
 				{
 					/** @var DOMAttr $attr */
-					$attr = $attrs->item($j);
+					$attr = $attrs->item(0);
 					if ($attr->namespaceURI == self::NS)
 					{
 						$attr->ownerElement->removeAttributeNode($attr);
