@@ -190,7 +190,7 @@ class EForms_Form
 	 */
 	public function processActions()
 	{
-		global $Eresus;
+		$Eresus = Eresus_CMS::getLegacyKernel();
 
 		$this->parse();
 		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
@@ -237,10 +237,11 @@ class EForms_Form
 			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
 				'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
 			$this->xml = $imp->createDocument("", "", $dtd);
+			$Eresus = Eresus_CMS::getLegacyKernel();
 			$code =
 				'<!DOCTYPE root[' .
-				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-lat1.ent') .
-				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-special.ent') .
+				file_get_contents($Eresus->froot . 'core/xhtml-lat1.ent') .
+				file_get_contents($Eresus->froot . 'core/xhtml-special.ent') .
         ']>' .
 				$code;
 			$this->xml->loadXML($code);
@@ -258,7 +259,7 @@ class EForms_Form
 	 */
 	protected function setActionAttribute()
 	{
-		global $Eresus;
+		$Eresus = Eresus_CMS::getLegacyKernel();
 
 		/** @var DOMElement $form */
 		$form = $this->xml->getElementsByTagName('form')->item(0);
@@ -423,7 +424,8 @@ class EForms_Form
 			}
 			elseif (isset($item['file']))
 			{
-				$filename = tempnam($GLOBALS['Eresus']->fdata, $this->owner->name);
+				$Eresus = Eresus_CMS::getLegacyKernel();
+				$filename = tempnam($Eresus->fdata, $this->owner->name);
 				upload($name, $filename, true);
 				list ($contentType, $mimeType) = explode('/', $item['file']['type']);
 				$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
@@ -443,16 +445,15 @@ class EForms_Form
 	 */
 	protected function actionRedirect($action)
 	{
-		global $page;
-
 		if ($this->redirect)
 		{
 			return;
 		}
 
 		$this->redirect = $action->getAttribute('uri');
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
 		$this->redirect = $page->replaceMacros($this->redirect);
-
 	}
 	//-----------------------------------------------------------------------------
 

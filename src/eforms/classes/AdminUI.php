@@ -117,7 +117,9 @@ class EForms_AdminUI
 	{
 		$tmpl = $this->plugin->getHelper()->getAdminTemplate('list.html');
 		$vars = $this->plugin->getHelper()->prepareTmplData();
-		$vars['rootURL'] = $GLOBALS['page']->url();
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		$vars['rootURL'] = $page->url();
 		$forms = $this->plugin->getForms();
 		$vars['items'] = $forms->getList();
 		return $tmpl->compile($vars);
@@ -157,7 +159,9 @@ class EForms_AdminUI
 			),
 			'buttons' => array('ok','cancel'),
 		);
-		return $GLOBALS['page']->renderForm($form);
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		return $page->renderForm($form);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -199,7 +203,9 @@ class EForms_AdminUI
 			),
 			'buttons' => array('ok', 'apply', 'cancel'),
 		);
-		return $GLOBALS['page']->renderForm($form);
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		return $page->renderForm($form);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -266,7 +272,9 @@ class EForms_AdminUI
 	{
 		$forms = $this->plugin->getForms();
 		$forms->delete($name);
-		HTTP::redirect($GLOBALS['page']->url());
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		HTTP::redirect($page->url());
 	}
 	//-----------------------------------------------------------------------------
 }

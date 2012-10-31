@@ -39,3 +39,11 @@ class Plugin
 {
 	public function uninstall() {}
 }
+
+class Eresus_CMS
+{
+	public static function getLegacyKernel()
+	{
+		return isset($GLOBALS['Tests_LegacyKernel']) ? $GLOBALS['Tests_LegacyKernel'] : null;
+	}
+}

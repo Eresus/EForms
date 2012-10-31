@@ -104,10 +104,9 @@ class EForms extends Plugin
 	 */
 	public function install()
 	{
-		global $Eresus;
-
 		parent::install();
 
+		$Eresus = Eresus_CMS::getLegacyKernel();
 		if (!is_dir($Eresus->froot.'templates/'.$this->name))
 		{
 			$umask = umask(0000);
@@ -122,7 +121,8 @@ class EForms extends Plugin
 	 */
 	public function uninstall()
 	{
-		$tmplDir = $GLOBALS['Eresus']->froot . 'templates/' . $this->name;
+		$Eresus = Eresus_CMS::getLegacyKernel();
+		$tmplDir = $Eresus->froot . 'templates/' . $this->name;
 		if (is_dir($tmplDir))
 		{
 			$it = new RecursiveDirectoryIterator($tmplDir, RecursiveDirectoryIterator::SKIP_DOTS);
@@ -250,7 +250,9 @@ class EForms extends Plugin
 	 */
 	public function adminOnMenuRender()
 	{
-		$GLOBALS['page']->addMenuItem(admExtensions, array(
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		$page->addMenuItem(admExtensions, array(
 			'access'  => EDITOR,
 			'link'  => $this->name,
 			'caption'  => 'Формы ввода',

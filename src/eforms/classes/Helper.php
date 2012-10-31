@@ -90,8 +90,8 @@ class EForms_Helper
 	{
 		$data = array();
 		$data['plugin'] = $this->plugin;
-		$data['page'] = $GLOBALS['page'];
-		$data['Eresus'] = $GLOBALS['Eresus'];
+		$data['page'] = Eresus_Kernel::app()->getPage();
+		$data['Eresus'] = Eresus_CMS::getLegacyKernel();
 		return $data;
 	}
 	//-----------------------------------------------------------------------------
