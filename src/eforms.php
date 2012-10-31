@@ -148,7 +148,6 @@ class EForms extends Plugin
 	{
 		if (!$this->helper)
 		{
-			$this->verifyClassLoaded('EForms_Helper');
 			$this->helper = new EForms_Helper($this);
 		}
 		return $this->helper;
@@ -166,7 +165,6 @@ class EForms extends Plugin
 	{
 		if (!$this->forms)
 		{
-			$this->verifyClassLoaded('EForms_Forms');
 			$this->forms = new EForms_Forms($this);
 		}
 		return $this->forms;
@@ -195,8 +193,6 @@ class EForms extends Plugin
 	 */
 	public function buildForm($macros)
 	{
-		$this->verifyClassLoaded('EForms_Form');
-
 		try
 		{
 			$form = new EForms_Form($this, $macros[1]);
@@ -216,7 +212,6 @@ class EForms extends Plugin
 	 */
 	public function clientOnContentRender($content)
 	{
-		$this->verifyClassLoaded('EForms_Form');
 		if (arg('ext') == $this->name)
 		{
 			$form = new EForms_Form($this, arg('form', 'word'));
@@ -235,7 +230,6 @@ class EForms extends Plugin
 	 */
 	public function adminRender()
 	{
-		$this->verifyClassLoaded('EForms_AdminUI');
 		$ui = new EForms_AdminUI($this);
 		return $ui->getHTML();
 	}
@@ -260,24 +254,5 @@ class EForms extends Plugin
 		));
 	}
 	//-----------------------------------------------------------------------------
-
-	/**
-	 * Убеждается что нужный класс загружен
-	 *
-	 * @param string $className
-	 *
-	 * @return void
-	 *
-	 * @since 1.01
-	 */
-	public function verifyClassLoaded($className)
-	{
-		if (!class_exists($className))
-		{
-			/** @noinspection PhpIncludeInspection */
-			require_once dirname(__FILE__) . '/' . $this->name . '/classes/' .
-				substr($className, strlen('EForms_')) . '.php';
-		}
-	}
-	//-----------------------------------------------------------------------------
 }
+

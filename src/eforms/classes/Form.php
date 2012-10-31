@@ -394,7 +394,6 @@ class EForms_Form
 	 */
 	protected function actionMailto($action)
 	{
-		$this->owner->verifyClassLoaded('EForms_Mail');
 		$mail = new EForms_Mail();
 
 		if (!($to = $action->getAttribute('to')))
