@@ -141,13 +141,14 @@ class EForms_Form
 			{
 				/** @var DOMNamedNodeMap $attrs */
 				$attrs = $node->attributes;
-				while ($attrs->length > 0)
+				for ($j = 0; $j < $attrs->length; $j++)
 				{
 					/** @var DOMAttr $attr */
-					$attr = $attrs->item(0);
+					$attr = $attrs->item($j);
 					if ($attr->namespaceURI == self::NS)
 					{
 						$attr->ownerElement->removeAttributeNode($attr);
+						$j--;
 					}
 				}
 
@@ -425,11 +426,13 @@ class EForms_Form
 			{
 				$Eresus = Eresus_CMS::getLegacyKernel();
 				$filename = tempnam($Eresus->fdata, $this->owner->name);
-				upload($name, $filename, true);
-				list ($contentType, $mimeType) = explode('/', $item['file']['type']);
-				$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
-					$mimeType);
-				unlink($filename);
+				if ($filename = upload($name, $filename, true))
+				{
+					list ($contentType, $mimeType) = explode('/', $item['file']['type']);
+					$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
+						$mimeType);
+					unlink($filename);
+				}
 			}
 		}
 		$mail->setText($text);
