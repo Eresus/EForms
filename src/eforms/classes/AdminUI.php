@@ -148,7 +148,7 @@ class EForms_AdminUI
 					'только латинские буквы, цифры, символы минус и подчёркивание',
 					'pattern' => '/^[\w\-]+$/i',
 					'errormsg' => 
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание'),
+					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
@@ -193,7 +193,7 @@ class EForms_AdminUI
 					'value' => arg('name') ? arg('name') : $item['name'],
 					'pattern' => '/^[\w\-]+$/i',
 					'errormsg' => 
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание'),
+					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
