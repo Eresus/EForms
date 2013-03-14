@@ -40,7 +40,7 @@
 class EForms_Form
 {
 	/**
-	 * Пространство имём XML
+	 * Пространство имён XML
 	 *
 	 * @todo постепенно заменить на «http://eresus.ru/specs/cms/plugins/eforms»
 	 */
@@ -115,9 +115,9 @@ class EForms_Form
 
 		/* Удаляем расширенные теги */
 		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
-		for ($i=0; $i<$tags->length; $i++)
+		while ($tags->length > 0)
 		{
-			$node = $tags->item($i);
+			$node = $tags->item(0);
 			$node->parentNode->removeChild($node);
 		}
 
@@ -134,17 +134,21 @@ class EForms_Form
 			$node = $tags->item($i);
 
 			$isElement = $node->nodeType == XML_ELEMENT_NODE;
+			/** @var DOMElement $node */
 			$hasAttributes = $isElement && $node->hasAttributes();
 
 			if ($isElement && $hasAttributes)
 			{
+				/** @var DOMNamedNodeMap $attrs */
 				$attrs = $node->attributes;
-				for ($j=0; $j<$attrs->length; $j++)
+				for ($j = 0; $j < $attrs->length; $j++)
 				{
+					/** @var DOMAttr $attr */
 					$attr = $attrs->item($j);
 					if ($attr->namespaceURI == self::NS)
 					{
 						$attr->ownerElement->removeAttributeNode($attr);
+						$j--;
 					}
 				}
 
@@ -157,10 +161,12 @@ class EForms_Form
 
 		if ($hasFileInputs)
 		{
-			$xml->firstChild->nextSibling->setAttribute('enctype', 'multipart/form-data');
+			/** @var DOMElement $element */
+			$element = $xml->firstChild->nextSibling;
+			$element->setAttribute('enctype', 'multipart/form-data');
 		}
 
-		// Предотавращяем схлопывание пустых textarea
+		// Предотвращаем схлопывание пустых textarea
 		$tags = $xml->getElementsByTagName('textarea');
 		for ($i=0; $i<$tags->length; $i++)
 		{
@@ -175,10 +181,6 @@ class EForms_Form
 		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html);
 		// Удаляем пустые <![CDATA[]]>
 		$html = str_replace('<![CDATA[]]>', '', $html);
-		if (strtolower(CHARSET) != 'utf-8')
-		{
-			$html = iconv('utf-8', CHARSET, $html);
-		}
 
 		return $html;
 	}
@@ -186,11 +188,10 @@ class EForms_Form
 
 	/**
 	 * Process form actions
-	 *
 	 */
 	public function processActions()
 	{
-		global $Eresus;
+		$Eresus = Eresus_CMS::getLegacyKernel();
 
 		$this->parse();
 		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
@@ -212,11 +213,11 @@ class EForms_Form
 		{
 			HTTP::redirect($this->redirect);
 		}
-		if ($this->html)
+		if (!$this->html)
 		{
-			return $this->html;
+			HTTP::redirect($Eresus->request['referer']);
 		}
-		HTTP::redirect($Eresus->request['referer']);
+		return $this->html;
 	}
 	//-----------------------------------------------------------------------------
 
@@ -237,14 +238,11 @@ class EForms_Form
 			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
 				'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
 			$this->xml = $imp->createDocument("", "", $dtd);
-			if (strtolower(CHARSET) != 'utf-8')
-			{
-				$code = iconv(CHARSET, 'utf-8', $code);
-			}
+			$Eresus = Eresus_CMS::getLegacyKernel();
 			$code =
 				'<!DOCTYPE root[' .
-				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-lat1.ent') .
-				file_get_contents($GLOBALS['Eresus']->froot . 'core/xhtml-special.ent') .
+				file_get_contents($Eresus->froot . 'core/xhtml-lat1.ent') .
+				file_get_contents($Eresus->froot . 'core/xhtml-special.ent') .
         ']>' .
 				$code;
 			$this->xml->loadXML($code);
@@ -262,8 +260,9 @@ class EForms_Form
 	 */
 	protected function setActionAttribute()
 	{
-		global $Eresus;
+		$Eresus = Eresus_CMS::getLegacyKernel();
 
+		/** @var DOMElement $form */
 		$form = $this->xml->getElementsByTagName('form')->item(0);
 		$form->setAttribute('action', $Eresus->request['path']);
 	}
@@ -303,10 +302,6 @@ class EForms_Form
 	protected function getLabelAttr($element)
 	{
 		$label = $element->getAttributeNS(self::NS, 'label');
-		if ($label)
-		{
-			$label = iconv('utf-8', CHARSET, $label);
-		}
 		return $label;
 	}
 	//-----------------------------------------------------------------------------
@@ -322,7 +317,9 @@ class EForms_Form
 		$inputTagNames = array('input', 'textarea', 'select');
 		$skipNames = array('ext', 'form');
 
-		$elements = $this->xml->getElementsByTagName('form')->item(0)->getElementsByTagName('*');
+		/** @var DOMElement $element */
+		$element = $this->xml->getElementsByTagName('form')->item(0);
+		$elements = $element->getElementsByTagName('*');
 
 		for ($i = 0; $i < $elements->length; $i++)
 		{
@@ -376,9 +373,9 @@ class EForms_Form
 	/**
 	 * Process action directive
 	 *
-	 * @param DOMElement $action
+	 * @param DOMNode $action
 	 */
-	protected function processAction($action)
+	protected function processAction(DOMNode $action)
 	{
 		$actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS))+1);
 		$methodName = 'action'.$actionName;
@@ -398,12 +395,11 @@ class EForms_Form
 	 */
 	protected function actionMailto($action)
 	{
-		$this->owner->verifyClassLoaded('EForms_Mail');
 		$mail = new EForms_Mail();
 
 		if (!($to = $action->getAttribute('to')))
 		{
-			return false;
+			return;
 		}
 		$mail->addTo($to);
 
@@ -411,7 +407,6 @@ class EForms_Form
 		{
 			$subj = $this->name;
 		}
-		$subj = iconv('utf-8', CHARSET, $subj);
 		$mail->setSubject($subj);
 
 		$data = $this->getFormData();
@@ -429,12 +424,15 @@ class EForms_Form
 			}
 			elseif (isset($item['file']))
 			{
-				$filename = tempnam($GLOBALS['Eresus']->fdata, $this->owner->name);
-				upload($name, $filename, true);
-				list ($contentType, $mimeType) = explode('/', $item['file']['type']);
-				$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
-					$mimeType);
-				unlink($filename);
+				$Eresus = Eresus_CMS::getLegacyKernel();
+				$filename = tempnam($Eresus->fdata, $this->owner->name);
+				if ($filename = upload($name, $filename, true))
+				{
+					list ($contentType, $mimeType) = explode('/', $item['file']['type']);
+					$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
+						$mimeType);
+					unlink($filename);
+				}
 			}
 		}
 		$mail->setText($text);
@@ -449,16 +447,15 @@ class EForms_Form
 	 */
 	protected function actionRedirect($action)
 	{
-		global $page;
-
 		if ($this->redirect)
 		{
 			return;
 		}
 
 		$this->redirect = $action->getAttribute('uri');
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
 		$this->redirect = $page->replaceMacros($this->redirect);
-
 	}
 	//-----------------------------------------------------------------------------
 
@@ -477,10 +474,6 @@ class EForms_Form
 			for ($i = 0; $i < $elements->length; $i++)
 			{
 				$html .= $this->xml->saveXML($elements->item($i));
-			}
-			if (strtolower(CHARSET) != 'utf-8')
-			{
-				$html = iconv('utf-8', CHARSET, $html);
 			}
 			$this->html .= $html;
 		}

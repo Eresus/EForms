@@ -53,23 +53,11 @@ class EForms_Mail
 	private $transport;
 
 	/**
-	 * Конструктор
-	 *
-	 * @return Mailer_Mail
-	 *
-	 * @since 1.00
-	 */
-	public function __construct()
-	{
-	}
-	//-----------------------------------------------------------------------------
-
-	/**
 	 * Устанавливает составитель писем
 	 *
 	 * @param ezcMailComposer $composer
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailComposer
@@ -106,7 +94,7 @@ class EForms_Mail
 	 *
 	 * @param ezcMailTransport $transport
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailTransport
@@ -144,7 +132,7 @@ class EForms_Mail
 	 * @param string $address  адрес получателя
 	 * @param string $name     имя получателя
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMail::addTo()
@@ -164,7 +152,7 @@ class EForms_Mail
 	 * @param string $address  адрес получателя
 	 * @param string $name     имя получателя
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMail::addCc()
@@ -184,7 +172,7 @@ class EForms_Mail
 	 * @param string $address  адрес получателя
 	 * @param string $name     имя получателя
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMail::addBcc()
@@ -204,7 +192,7 @@ class EForms_Mail
 	 * @param string $address  адрес отправителя
 	 * @param string $name     имя отправителя
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailComposer::$from
@@ -223,7 +211,7 @@ class EForms_Mail
 	 *
 	 * @param string $address адрес для ответа
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 */
@@ -239,7 +227,7 @@ class EForms_Mail
 	 *
 	 * @param string $subject
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMail::$subject
@@ -259,7 +247,7 @@ class EForms_Mail
 	 *
 	 * @param string $html
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailComposer::$htmlText
@@ -277,7 +265,7 @@ class EForms_Mail
 	 *
 	 * @param string $text
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailComposer::$plainText
@@ -298,7 +286,7 @@ class EForms_Mail
 	 * @param string $contentType  тип контента (по умолчанию "application")
 	 * @param string $mimeType     тип MIME (по умолчанию "octet-stream")
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailComposer::addAttachment()
@@ -318,7 +306,7 @@ class EForms_Mail
 	 * @param string $name
 	 * @param string $value
 	 *
-	 * @return Mailer_Mail
+	 * @return EForms_Mail
 	 *
 	 * @since 1.00
 	 * @uses ezcMailPart::setHeader()

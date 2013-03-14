@@ -58,8 +58,6 @@ class EForms_Forms
 	 * Конструктор
 	 *
 	 * @param EForms $plugin
-	 *
-	 * @return EForms_Helper
 	 */
 	public function __construct(EForms $plugin)
 	{
@@ -156,7 +154,7 @@ class EForms_Forms
 	 *
 	 * @param string $name
 	 *
-	 * @return array
+	 * @return array|bool описание формы или false, если такой формы нет
 	 *
 	 * @since 1.01
 	 */
@@ -164,8 +162,11 @@ class EForms_Forms
 	{
 		$templates = $this->getTemplates();
 		$form = $templates->get($name, $this->plugin->name, true);
-		$form['title'] = $form['desc'];
-		unset($form['desc']);
+		if ($form)
+		{
+			$form['title'] = $form['desc'];
+			unset($form['desc']);
+		}
 		return $form;
 	}
 	//-----------------------------------------------------------------------------

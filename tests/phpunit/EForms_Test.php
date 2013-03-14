@@ -56,8 +56,8 @@ class EForms_Test extends PHPUnit_Framework_TestCase
 			$d_eforms->addChild($file);
 		}
 
-		$GLOBALS['Eresus'] = new stdClass();
-		$GLOBALS['Eresus']->froot = vfsStream::url('htdocs') . '/';
+		$GLOBALS['Tests_LegacyKernel'] = new stdClass();
+		$GLOBALS['Tests_LegacyKernel']->froot = vfsStream::url('htdocs') . '/';
 
 		$plugin->uninstall();
 

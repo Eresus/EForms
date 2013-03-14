@@ -125,20 +125,12 @@
 	-->
 	<target name="docs" description="Generate documentation">
 
-		<delete dir="${docs.dir}" includeemptydirs="true" failonerror="true" />
+		<delete dir="${docs.dir}" includeemptydirs="true" failonerror="false" />
+        <mkdir dir="${docs.dir}"/>
 
-		<phpdoc title="E-Forms API"
-		  destdir="${docs.dir}"
-		  sourcecode="no"
-			parseprivate="false"
-		  output="${docs.converter}">
+		<phpdoc2 title="E-Forms API" destdir="${docs.dir}">
 		   <fileset refid="files.sources" />
-		   <projdocfileset dir=".">
-		      <include name="README" />
-		      <include name="INSTALL" />
-		      <include name="CHANGELOG" />
-		   </projdocfileset>
-		</phpdoc>
+	    </phpdoc2>
 
 	</target>
 

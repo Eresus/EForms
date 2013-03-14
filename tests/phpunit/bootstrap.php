@@ -32,13 +32,18 @@
 
 define('TESTS_SRC_DIR', realpath(__DIR__) . '/../../src');
 
-PHP_CodeCoverage_Filter::getInstance()->addFileToWhitelist(TESTS_SRC_DIR . '/eforms.php');
-PHP_CodeCoverage_Filter::getInstance()->addDirectoryToWhitelist(TESTS_SRC_DIR . '/eforms');
-
 require_once 'vfsStream/vfsStream.php';
 
 
 class Plugin
 {
 	public function uninstall() {}
+}
+
+class Eresus_CMS
+{
+	public static function getLegacyKernel()
+	{
+		return isset($GLOBALS['Tests_LegacyKernel']) ? $GLOBALS['Tests_LegacyKernel'] : null;
+	}
 }

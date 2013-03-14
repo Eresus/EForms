@@ -70,7 +70,7 @@ class EForms_AdminUI
 	 */
 	public function getHTML()
 	{
-
+		$html = '';
 		switch (arg('action'))
 		{
 			case 'add':
@@ -94,7 +94,7 @@ class EForms_AdminUI
 					break;
 
 					case arg('delete'):
-						$html = $this->actionDelete(arg('delete'));
+						$this->actionDelete(arg('delete'));
 					break;
 
 					default:
@@ -117,7 +117,9 @@ class EForms_AdminUI
 	{
 		$tmpl = $this->plugin->getHelper()->getAdminTemplate('list.html');
 		$vars = $this->plugin->getHelper()->prepareTmplData();
-		$vars['rootURL'] = $GLOBALS['page']->url();
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		$vars['rootURL'] = $page->url();
 		$forms = $this->plugin->getForms();
 		$vars['items'] = $forms->getList();
 		return $tmpl->compile($vars);
@@ -135,29 +137,31 @@ class EForms_AdminUI
 	{
 		$form = array(
 			'name' => 'add',
-			'caption' => iconv('utf-8', CHARSET, 'Добавление формы'),
+			'caption' => 'Добавление формы',
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'action', 'value' => 'create'),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
 					'width' => '99%', 'value' => arg('title')),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
-					'width'=>'16em', 'value' => arg('name'), 'comment' => iconv('utf-8', CHARSET,
-					'только латинские буквы, цифры, символы минус и подчёркивание'),
+				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+					'width'=>'16em', 'value' => arg('name'), 'comment' => 
+					'только латинские буквы, цифры, символы минус и подчёркивание',
 					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => iconv('utf-8', CHARSET,
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+					'errormsg' => 
+					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+						'Синтаксис форм</a></b>'),
 				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
 					'value' => arg('code') ? arg('code') :
 					'<form xmlns:ef="http://procreat.ru/eresus2/ext/eforms" method="post">' .	"\n</form>"),
 			),
 			'buttons' => array('ok','cancel'),
 		);
-		return $GLOBALS['page']->renderForm($form);
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		return $page->renderForm($form);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -181,32 +185,34 @@ class EForms_AdminUI
 			'width' => '100%',
 			'fields' => array (
 				array('type' => 'hidden','name' => 'update', 'value' => $item['name']),
-				array('type' => 'edit', 'name'=>'title', 'label' => iconv('utf-8', CHARSET, 'Описание'),
+				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
 					'width' => '99%', 'value' => arg('title') ? arg('title') : $item['title']),
-				array('type' => 'edit', 'name' => 'name', 'label' => iconv('utf-8', CHARSET, 'Имя'),
-					'width'=>'16em', 'comment' => iconv('utf-8', CHARSET,
-					'только латинские буквы, цифры, символы минус и подчёркивание'),
+				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+					'width'=>'16em', 'comment' =>
+					'только латинские буквы, цифры, символы минус и подчёркивание',
 					'value' => arg('name') ? arg('name') : $item['name'],
 					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => iconv('utf-8', CHARSET,
-					'Имя формы может только латинские буквы, цифры, символы минус и подчёркивание')),
+					'errormsg' => 
+					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
 				array('type' => 'text',
 					'value' =>
 						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						iconv('utf-8', CHARSET, 'Синтаксис форм') . '</a></b>'),
+						'Синтаксис форм</a></b>'),
 				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
 					'value' => arg('code') ? arg('code') : $item['code']),
 			),
 			'buttons' => array('ok', 'apply', 'cancel'),
 		);
-		return $GLOBALS['page']->renderForm($form);
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		return $page->renderForm($form);
 	}
 	//-----------------------------------------------------------------------------
 
 	/**
 	 * Сохраняет новую форму
 	 *
-	 * @return void
+	 * @return string
 	 *
 	 * @since 1.01
 	 */
@@ -214,23 +220,20 @@ class EForms_AdminUI
 	{
 		$forms = $this->plugin->getForms();
 		$name = arg('name');
-		if (count($forms->get($name)) > 1)
-		{
-			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
-			return $this->actionAddDialog();
-		}
-		else
+		if ($forms->get($name) === false)
 		{
 			$forms->add($name, arg('code'), arg('title'));
 			HTTP::redirect(arg('submitURL'));
 		}
+		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+		return $this->actionAddDialog();
 	}
 	//-----------------------------------------------------------------------------
 
 	/**
 	 * Обновляет форму
 	 *
-	 * @return void
+	 * @return string
 	 *
 	 * @since 1.01
 	 */
@@ -239,12 +242,7 @@ class EForms_AdminUI
 		$oldName = arg('update');
 		$newName = arg('name');
 		$forms = $this->plugin->getForms();
-		if ($oldName != $newName && count($forms->get($newName)) > 1)
-		{
-			ErrorMessage(iconv('utf-8', CHARSET, 'Форма с таким именем уже есть! Укажите другое имя.'));
-			return $this->actionEditDialog($oldName);
-		}
-		else
+		if ($oldName == $newName || $forms->get($newName) === false)
 		{
 			$forms->update($oldName, arg('code'), arg('title'));
 
@@ -256,6 +254,8 @@ class EForms_AdminUI
 			}
 			HTTP::redirect($url);
 		}
+		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+		return $this->actionEditDialog($oldName);
 	}
 	//-----------------------------------------------------------------------------
 
@@ -272,7 +272,9 @@ class EForms_AdminUI
 	{
 		$forms = $this->plugin->getForms();
 		$forms->delete($name);
-		HTTP::redirect($GLOBALS['page']->url());
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		HTTP::redirect($page->url());
 	}
 	//-----------------------------------------------------------------------------
 }

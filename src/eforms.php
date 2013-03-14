@@ -2,29 +2,29 @@
 /**
  * E-Forms
  *
- * Расширенные HTML-формы
+ * Р Р°СЃС€РёСЂРµРЅРЅС‹Рµ HTML-С„РѕСЂРјС‹
  *
  * @version ${product.version}
  *
  * @copyright 2008, Eresus Group, http://eresus.ru/
- * @copyright 2010, ООО "Два слона", http://dvaslona.ru/
+ * @copyright 2010, РћРћРћ "Р”РІР° СЃР»РѕРЅР°", http://dvaslona.ru/
  * @license http://www.gnu.org/licenses/gpl.txt  GPL License 3
- * @author Михаил Красильников <mihalych@vsepofigu.ru>
+ * @author РњРёС…Р°РёР» РљСЂР°СЃРёР»СЊРЅРёРєРѕРІ <mihalych@vsepofigu.ru>
  *
- * Данная программа является свободным программным обеспечением. Вы
- * вправе распространять ее и/или модифицировать в соответствии с
- * условиями версии 3 либо (по вашему выбору) с условиями более поздней
- * версии Стандартной Общественной Лицензии GNU, опубликованной Free
+ * Р”Р°РЅРЅР°СЏ РїСЂРѕРіСЂР°РјРјР° СЏРІР»СЏРµС‚СЃСЏ СЃРІРѕР±РѕРґРЅС‹Рј РїСЂРѕРіСЂР°РјРјРЅС‹Рј РѕР±РµСЃРїРµС‡РµРЅРёРµРј. Р’С‹
+ * РІРїСЂР°РІРµ СЂР°СЃРїСЂРѕСЃС‚СЂР°РЅСЏС‚СЊ РµРµ Рё/РёР»Рё РјРѕРґРёС„РёС†РёСЂРѕРІР°С‚СЊ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ
+ * СѓСЃР»РѕРІРёСЏРјРё РІРµСЂСЃРёРё 3 Р»РёР±Рѕ (РїРѕ РІР°С€РµРјСѓ РІС‹Р±РѕСЂСѓ) СЃ СѓСЃР»РѕРІРёСЏРјРё Р±РѕР»РµРµ РїРѕР·РґРЅРµР№
+ * РІРµСЂСЃРёРё РЎС‚Р°РЅРґР°СЂС‚РЅРѕР№ РћР±С‰РµСЃС‚РІРµРЅРЅРѕР№ Р›РёС†РµРЅР·РёРё GNU, РѕРїСѓР±Р»РёРєРѕРІР°РЅРЅРѕР№ Free
  * Software Foundation.
  *
- * Мы распространяем эту программу в надежде на то, что она будет вам
- * полезной, однако НЕ ПРЕДОСТАВЛЯЕМ НА НЕЕ НИКАКИХ ГАРАНТИЙ, в том
- * числе ГАРАНТИИ ТОВАРНОГО СОСТОЯНИЯ ПРИ ПРОДАЖЕ и ПРИГОДНОСТИ ДЛЯ
- * ИСПОЛЬЗОВАНИЯ В КОНКРЕТНЫХ ЦЕЛЯХ. Для получения более подробной
- * информации ознакомьтесь со Стандартной Общественной Лицензией GNU.
+ * РњС‹ СЂР°СЃРїСЂРѕСЃС‚СЂР°РЅСЏРµРј СЌС‚Сѓ РїСЂРѕРіСЂР°РјРјСѓ РІ РЅР°РґРµР¶РґРµ РЅР° С‚Рѕ, С‡С‚Рѕ РѕРЅР° Р±СѓРґРµС‚ РІР°Рј
+ * РїРѕР»РµР·РЅРѕР№, РѕРґРЅР°РєРѕ РќР• РџР Р•Р”РћРЎРўРђР’Р›РЇР•Рњ РќРђ РќР•Р• РќРРљРђРљРРҐ Р“РђР РђРќРўРР™, РІ С‚РѕРј
+ * С‡РёСЃР»Рµ Р“РђР РђРќРўРР РўРћР’РђР РќРћР“Рћ РЎРћРЎРўРћРЇРќРРЇ РџР Р РџР РћР”РђР–Р• Рё РџР РР“РћР”РќРћРЎРўР Р”Р›РЇ
+ * РРЎРџРћР›Р¬Р—РћР’РђРќРРЇ Р’ РљРћРќРљР Р•РўРќР«РҐ Р¦Р•Р›РЇРҐ. Р”Р»СЏ РїРѕР»СѓС‡РµРЅРёСЏ Р±РѕР»РµРµ РїРѕРґСЂРѕР±РЅРѕР№
+ * РёРЅС„РѕСЂРјР°С†РёРё РѕР·РЅР°РєРѕРјСЊС‚РµСЃСЊ СЃРѕ РЎС‚Р°РЅРґР°СЂС‚РЅРѕР№ РћР±С‰РµСЃС‚РІРµРЅРЅРѕР№ Р›РёС†РµРЅР·РёРµР№ GNU.
  *
- * Вы должны были получить копию Стандартной Общественной Лицензии
- * GNU с этой программой. Если Вы ее не получили, смотрите документ на
+ * Р’С‹ РґРѕР»Р¶РЅС‹ Р±С‹Р»Рё РїРѕР»СѓС‡РёС‚СЊ РєРѕРїРёСЋ РЎС‚Р°РЅРґР°СЂС‚РЅРѕР№ РћР±С‰РµСЃС‚РІРµРЅРЅРѕР№ Р›РёС†РµРЅР·РёРё
+ * GNU СЃ СЌС‚РѕР№ РїСЂРѕРіСЂР°РјРјРѕР№. Р•СЃР»Рё Р’С‹ РµРµ РЅРµ РїРѕР»СѓС‡РёР»Рё, СЃРјРѕС‚СЂРёС‚Рµ РґРѕРєСѓРјРµРЅС‚ РЅР°
  * <http://www.gnu.org/licenses/>
  *
  * @package E-Forms
@@ -34,44 +34,44 @@
 
 
 /**
- * Класс плагина
+ * РљР»Р°СЃСЃ РїР»Р°РіРёРЅР°
  *
  * @package E-Forms
  */
 class EForms extends Plugin
 {
 	/**
-	 * Версия плагина
+	 * Р’РµСЂСЃРёСЏ РїР»Р°РіРёРЅР°
 	 * @var string
 	 */
 	public $version = '${product.version}';
 
 	/**
-	 * Требуемая версия ядра
+	 * РўСЂРµР±СѓРµРјР°СЏ РІРµСЂСЃРёСЏ СЏРґСЂР°
 	 * @var string
 	 */
-	public $kernel = '2.14';
+	public $kernel = '3.00';
 
 	/**
-	 * Название плагина
+	 * РќР°Р·РІР°РЅРёРµ РїР»Р°РіРёРЅР°
 	 * @var string
 	 */
 	public $title = 'E-Forms';
 
 	/**
-	 * Описание плагина
+	 * РћРїРёСЃР°РЅРёРµ РїР»Р°РіРёРЅР°
 	 * @var string
 	 */
-	public $description = 'Расширенные HTML-формы';
+	public $description = 'Р Р°СЃС€РёСЂРµРЅРЅС‹Рµ HTML-С„РѕСЂРјС‹';
 
 	/**
-	 * Тип плагина
+	 * РўРёРї РїР»Р°РіРёРЅР°
 	 * @var string
 	 */
 	public $type = 'client,admin';
 
 	/**
-	 * Объект-помощник
+	 * РћР±СЉРµРєС‚-РїРѕРјРѕС‰РЅРёРє
 	 *
 	 * @var EForms_Helper
 	 * @since 1.01
@@ -79,7 +79,7 @@ class EForms extends Plugin
 	private $helper;
 
 	/**
-	 * Интерфейс к формам
+	 * РРЅС‚РµСЂС„РµР№СЃ Рє С„РѕСЂРјР°Рј
 	 *
 	 * @var EForms_Forms
 	 * @since 1.01
@@ -87,7 +87,7 @@ class EForms extends Plugin
 	private $forms;
 
 	/**
-	 * Констурктор
+	 * РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 	 *
 	 * @return EForms
 	 */
@@ -99,15 +99,14 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Действия при установке плагина
+	 * Р”РµР№СЃС‚РІРёСЏ РїСЂРё СѓСЃС‚Р°РЅРѕРІРєРµ РїР»Р°РіРёРЅР°
 	 *
 	 */
 	public function install()
 	{
-		global $Eresus;
-
 		parent::install();
 
+		$Eresus = Eresus_CMS::getLegacyKernel();
 		if (!is_dir($Eresus->froot.'templates/'.$this->name))
 		{
 			$umask = umask(0000);
@@ -122,7 +121,8 @@ class EForms extends Plugin
 	 */
 	public function uninstall()
 	{
-		$tmplDir = $GLOBALS['Eresus']->froot . 'templates/' . $this->name;
+		$Eresus = Eresus_CMS::getLegacyKernel();
+		$tmplDir = $Eresus->froot . 'templates/' . $this->name;
 		if (is_dir($tmplDir))
 		{
 			$it = new RecursiveDirectoryIterator($tmplDir, RecursiveDirectoryIterator::SKIP_DOTS);
@@ -138,7 +138,7 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Возвращает объект-помщник
+	 * Р’РѕР·РІСЂР°С‰Р°РµС‚ РѕР±СЉРµРєС‚-РїРѕРјРѕС‰РЅРёРє
 	 *
 	 * @return EForms_Helper
 	 *
@@ -148,7 +148,6 @@ class EForms extends Plugin
 	{
 		if (!$this->helper)
 		{
-			$this->verifyClassLoaded('EForms_Helper');
 			$this->helper = new EForms_Helper($this);
 		}
 		return $this->helper;
@@ -156,7 +155,7 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Возвращает интерфейс к формам
+	 * Р’РѕР·РІСЂР°С‰Р°РµС‚ РёРЅС‚РµСЂС„РµР№СЃ Рє С„РѕСЂРјР°Рј
 	 *
 	 * @return EForms_Forms
 	 *
@@ -166,7 +165,6 @@ class EForms extends Plugin
 	{
 		if (!$this->forms)
 		{
-			$this->verifyClassLoaded('EForms_Forms');
 			$this->forms = new EForms_Forms($this);
 		}
 		return $this->forms;
@@ -174,7 +172,7 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Подстановка форм на страницу
+	 * РџРѕРґСЃС‚Р°РЅРѕРІРєР° С„РѕСЂРј РЅР° СЃС‚СЂР°РЅРёС†Сѓ
 	 *
 	 * @param string $text
 	 * @return string
@@ -188,15 +186,13 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * HTML-код формы
+	 * HTML-РєРѕРґ С„РѕСЂРјС‹
 	 *
 	 * @param array $macros
 	 * @return string
 	 */
 	public function buildForm($macros)
 	{
-		$this->verifyClassLoaded('EForms_Form');
-
 		try
 		{
 			$form = new EForms_Form($this, $macros[1]);
@@ -204,7 +200,6 @@ class EForms extends Plugin
 		catch (Exception $e)
 		{
 			return $macros[0];
-			$e = $e; // PHPMD hack
 		}
 
 		return $form->getHTML();
@@ -212,12 +207,11 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Обработка отправленных форм
+	 * РћР±СЂР°Р±РѕС‚РєР° РѕС‚РїСЂР°РІР»РµРЅРЅС‹С… С„РѕСЂРј
 	 *
 	 */
 	public function clientOnContentRender($content)
 	{
-		$this->verifyClassLoaded('EForms_Form');
 		if (arg('ext') == $this->name)
 		{
 			$form = new EForms_Form($this, arg('form', 'word'));
@@ -228,7 +222,7 @@ class EForms extends Plugin
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Интерфейс управления формами
+	 * РРЅС‚РµСЂС„РµР№СЃ СѓРїСЂР°РІР»РµРЅРёСЏ С„РѕСЂРјР°РјРё
 	 *
 	 * @return string  HTML
 	 *
@@ -236,14 +230,13 @@ class EForms extends Plugin
 	 */
 	public function adminRender()
 	{
-		$this->verifyClassLoaded('EForms_AdminUI');
 		$ui = new EForms_AdminUI($this);
 		return $ui->getHTML();
 	}
 	//-----------------------------------------------------------------------------
 
 	/**
-	 * Добавляет пункт "Формы ввода" в меню "Расширения"
+	 * Р”РѕР±Р°РІР»СЏРµС‚ РїСѓРЅРєС‚ "Р¤РѕСЂРјС‹ РІРІРѕРґР°" РІ РјРµРЅСЋ "Р Р°СЃС€РёСЂРµРЅРёСЏ"
 	 *
 	 * @return void
 	 *
@@ -251,31 +244,15 @@ class EForms extends Plugin
 	 */
 	public function adminOnMenuRender()
 	{
-		$GLOBALS['page']->addMenuItem(admExtensions, array(
+		/** @var TAdminUI $page */
+		$page = Eresus_Kernel::app()->getPage();
+		$page->addMenuItem(admExtensions, array(
 			'access'  => EDITOR,
 			'link'  => $this->name,
-			'caption'  => 'Формы ввода',
+			'caption'  => 'Р¤РѕСЂРјС‹ РІРІРѕРґР°',
 			'hint'  => $this->description
 		));
 	}
 	//-----------------------------------------------------------------------------
-
-	/**
-	 * Убеждается что нужный класс загружен
-	 *
-	 * @param string $className
-	 *
-	 * @return void
-	 *
-	 * @since 1.01
-	 */
-	public function verifyClassLoaded($className)
-	{
-		if (!class_exists($className))
-		{
-			require_once dirname(__FILE__) . '/' . $this->name . '/classes/' .
-				substr($className, strlen('EForms_')) . '.php';
-		}
-	}
-	//-----------------------------------------------------------------------------
 }
+
