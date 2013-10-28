@@ -1,10 +1,8 @@
 <?php
 /**
- * E-Forms
- *
  * Административный интерфейс
  *
- * @version 1.01
+ * @version ${product.version}
  *
  * @copyright 2011, ООО "Два слона", http://dvaslona.ru/
  * @license http://www.gnu.org/licenses/gpl.txt  GPL License 3
@@ -27,8 +25,6 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package E-Forms
- *
- * $Id$
  */
 
 /**
@@ -39,242 +35,249 @@
  */
 class EForms_AdminUI
 {
-	/**
-	 * Класс модуля
-	 *
-	 * @var EForms
-	 */
-	private $plugin;
+    /**
+     * Класс модуля
+     *
+     * @var EForms
+     */
+    private $plugin;
 
-	/**
-	 * Конструктор
-	 *
-	 * @param Plugin $plugin
-	 *
-	 * @return EForms_AdminUI
-	 *
-	 * @since 1.01
-	 */
-	public function __construct(Plugin $plugin)
-	{
-		$this->plugin = $plugin;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Конструктор
+     *
+     * @param Plugin $plugin
+     *
+     * @return EForms_AdminUI
+     *
+     * @since 1.01
+     */
+    public function __construct(Plugin $plugin)
+    {
+        $this->plugin = $plugin;
+    }
 
-	/**
-	 * Возвращает разметку интерфейса
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	public function getHTML()
-	{
-		$html = '';
-		switch (arg('action'))
-		{
-			case 'add':
-				$html = $this->actionAddDialog();
-			break;
+    //-----------------------------------------------------------------------------
 
-			case 'create':
-				$html = $this->actionCreate();
-			break;
+    /**
+     * Возвращает разметку интерфейса
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    public function getHTML()
+    {
+        $html = '';
+        switch (arg('action'))
+        {
+            case 'add':
+                $html = $this->actionAddDialog();
+                break;
 
-			default:
+            case 'create':
+                $html = $this->actionCreate();
+                break;
 
-				switch (true)
-				{
-					case arg('edit'):
-						$html = $this->actionEditDialog(arg('edit'));
-					break;
+            default:
 
-					case arg('update'):
-						$html = $this->actionUpdate();
-					break;
+                switch (true)
+                {
+                    case arg('edit'):
+                        $html = $this->actionEditDialog(arg('edit'));
+                        break;
 
-					case arg('delete'):
-						$this->actionDelete(arg('delete'));
-					break;
+                    case arg('update'):
+                        $html = $this->actionUpdate();
+                        break;
 
-					default:
-						$html = $this->actionIndex();
-				}
-			break;
-		}
-		return $html;
-	}
-	//-----------------------------------------------------------------------------
+                    case arg('delete'):
+                        $this->actionDelete(arg('delete'));
+                        break;
 
-	/**
-	 * Главная страница
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	private function actionIndex()
-	{
-		$tmpl = $this->plugin->getHelper()->getAdminTemplate('list.html');
-		$vars = $this->plugin->getHelper()->prepareTmplData();
-		/** @var TAdminUI $page */
-		$page = Eresus_Kernel::app()->getPage();
-		$vars['rootURL'] = $page->url();
-		$forms = $this->plugin->getForms();
-		$vars['items'] = $forms->getList();
-		return $tmpl->compile($vars);
-	}
-	//-----------------------------------------------------------------------------
+                    default:
+                        $html = $this->actionIndex();
+                }
+                break;
+        }
+        return $html;
+    }
 
-	/**
-	 * Диалог добавления новой формы
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	private function actionAddDialog()
-	{
-		$form = array(
-			'name' => 'add',
-			'caption' => 'Добавление формы',
-			'width' => '100%',
-			'fields' => array (
-				array('type' => 'hidden','name' => 'action', 'value' => 'create'),
-				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
-					'width' => '99%', 'value' => arg('title')),
-				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
-					'width'=>'16em', 'value' => arg('name'), 'comment' => 
-					'только латинские буквы, цифры, символы минус и подчёркивание',
-					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => 
-					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
-				array('type' => 'text',
-					'value' =>
-						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						'Синтаксис форм</a></b>'),
-				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
-					'value' => arg('code') ? arg('code') :
-					'<form xmlns:ef="http://procreat.ru/eresus2/ext/eforms" method="post">' .	"\n</form>"),
-			),
-			'buttons' => array('ok','cancel'),
-		);
-		/** @var TAdminUI $page */
-		$page = Eresus_Kernel::app()->getPage();
-		return $page->renderForm($form);
-	}
-	//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 
-	/**
-	 * Диалог изменения формы
-	 *
-	 * @param string $name
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	private function actionEditDialog($name)
-	{
-		$forms = $this->plugin->getForms();
-		$item = $forms->get($name);
+    /**
+     * Главная страница
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    private function actionIndex()
+    {
+        $tmpl = $this->plugin->getHelper()->getAdminTemplate('list.html');
+        $vars = $this->plugin->getHelper()->prepareTmplData();
+        /** @var TAdminUI $page */
+        $page = Eresus_Kernel::app()->getPage();
+        $vars['rootURL'] = $page->url();
+        $forms = $this->plugin->getForms();
+        $vars['items'] = $forms->getList();
+        return $tmpl->compile($vars);
+    }
 
-		$form = array(
-			'name' => 'edit',
-			'caption' => $item['title'],
-			'width' => '100%',
-			'fields' => array (
-				array('type' => 'hidden','name' => 'update', 'value' => $item['name']),
-				array('type' => 'edit', 'name'=>'title', 'label' => 'Описание',
-					'width' => '99%', 'value' => arg('title') ? arg('title') : $item['title']),
-				array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
-					'width'=>'16em', 'comment' =>
-					'только латинские буквы, цифры, символы минус и подчёркивание',
-					'value' => arg('name') ? arg('name') : $item['name'],
-					'pattern' => '/^[\w\-]+$/i',
-					'errormsg' => 
-					'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
-				array('type' => 'text',
-					'value' =>
-						'&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
-						'Синтаксис форм</a></b>'),
-				array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
-					'value' => arg('code') ? arg('code') : $item['code']),
-			),
-			'buttons' => array('ok', 'apply', 'cancel'),
-		);
-		/** @var TAdminUI $page */
-		$page = Eresus_Kernel::app()->getPage();
-		return $page->renderForm($form);
-	}
-	//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 
-	/**
-	 * Сохраняет новую форму
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	private function actionCreate()
-	{
-		$forms = $this->plugin->getForms();
-		$name = arg('name');
-		if ($forms->get($name) === false)
-		{
-			$forms->add($name, arg('code'), arg('title'));
-			HTTP::redirect(arg('submitURL'));
-		}
-		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
-		return $this->actionAddDialog();
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Диалог добавления новой формы
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    private function actionAddDialog()
+    {
+        $form = array(
+            'name' => 'add',
+            'caption' => 'Добавление формы',
+            'width' => '100%',
+            'fields' => array(
+                array('type' => 'hidden', 'name' => 'action', 'value' => 'create'),
+                array('type' => 'edit', 'name' => 'title', 'label' => 'Описание',
+                    'width' => '99%', 'value' => arg('title')),
+                array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+                    'width' => '16em', 'value' => arg('name'), 'comment' =>
+                'только латинские буквы, цифры, символы минус и подчёркивание',
+                    'pattern' => '/^[\w\-]+$/i',
+                    'errormsg' =>
+                    'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
+                array('type' => 'text',
+                    'value' =>
+                    '&raquo; <b><a href="https://github.com/Eresus/EForms/wiki/%D0%AF%D0%B7%D1%8B%D0%BA-%D1%84%D0%BE%D1%80%D0%BC">' .
+                    'Синтаксис форм</a></b>'),
+                array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
+                    'value' => arg('code') ? arg('code') :
+                        '<form xmlns:ef="http://procreat.ru/eresus2/ext/eforms" method="post">' . "\n</form>"),
+            ),
+            'buttons' => array('ok', 'cancel'),
+        );
+        /** @var TAdminUI $page */
+        $page = Eresus_Kernel::app()->getPage();
+        return $page->renderForm($form);
+    }
 
-	/**
-	 * Обновляет форму
-	 *
-	 * @return string
-	 *
-	 * @since 1.01
-	 */
-	private function actionUpdate()
-	{
-		$oldName = arg('update');
-		$newName = arg('name');
-		$forms = $this->plugin->getForms();
-		if ($oldName == $newName || $forms->get($newName) === false)
-		{
-			$forms->update($oldName, arg('code'), arg('title'));
+    //-----------------------------------------------------------------------------
 
-			$url = arg('submitURL');
-			if ($oldName != $newName)
-			{
-				$forms->rename($oldName, $newName);
-				$url = str_replace('edit=' . $oldName, 'edit=' . $newName, $url);
-			}
-			HTTP::redirect($url);
-		}
-		ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
-		return $this->actionEditDialog($oldName);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Диалог изменения формы
+     *
+     * @param string $name
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    private function actionEditDialog($name)
+    {
+        $forms = $this->plugin->getForms();
+        $item = $forms->get($name);
 
-	/**
-	 * Удаляет форму
-	 *
-	 * @param string $name
-	 *
-	 * @return void
-	 *
-	 * @since 1.01
-	 */
-	private function actionDelete($name)
-	{
-		$forms = $this->plugin->getForms();
-		$forms->delete($name);
-		/** @var TAdminUI $page */
-		$page = Eresus_Kernel::app()->getPage();
-		HTTP::redirect($page->url());
-	}
-	//-----------------------------------------------------------------------------
+        $form = array(
+            'name' => 'edit',
+            'caption' => $item['title'],
+            'width' => '100%',
+            'fields' => array(
+                array('type' => 'hidden', 'name' => 'update', 'value' => $item['name']),
+                array('type' => 'edit', 'name' => 'title', 'label' => 'Описание',
+                    'width' => '99%', 'value' => arg('title') ? arg('title') : $item['title']),
+                array('type' => 'edit', 'name' => 'name', 'label' => 'Имя',
+                    'width' => '16em', 'comment' =>
+                'только латинские буквы, цифры, символы минус и подчёркивание',
+                    'value' => arg('name') ? arg('name') : $item['name'],
+                    'pattern' => '/^[\w\-]+$/i',
+                    'errormsg' =>
+                    'Имя формы может содержать только латинские буквы, цифры, символы минус и подчёркивание'),
+                array('type' => 'text',
+                    'value' =>
+                    '&raquo; <b><a href="http://docs.eresus.ru/cms-plugins/eforms/usage/language">' .
+                    'Синтаксис форм</a></b>'),
+                array('type' => 'memo', 'name' => 'code', 'height' => '30', 'syntax' => 'html',
+                    'value' => arg('code') ? arg('code') : $item['code']),
+            ),
+            'buttons' => array('ok', 'apply', 'cancel'),
+        );
+        /** @var TAdminUI $page */
+        $page = Eresus_Kernel::app()->getPage();
+        return $page->renderForm($form);
+    }
+
+    //-----------------------------------------------------------------------------
+
+    /**
+     * Сохраняет новую форму
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    private function actionCreate()
+    {
+        $forms = $this->plugin->getForms();
+        $name = arg('name');
+        if ($forms->get($name) === false)
+        {
+            $forms->add($name, arg('code'), arg('title'));
+            HTTP::redirect(arg('submitURL'));
+        }
+        ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+        return $this->actionAddDialog();
+    }
+
+    //-----------------------------------------------------------------------------
+
+    /**
+     * Обновляет форму
+     *
+     * @return string
+     *
+     * @since 1.01
+     */
+    private function actionUpdate()
+    {
+        $oldName = arg('update');
+        $newName = arg('name');
+        $forms = $this->plugin->getForms();
+        if ($oldName == $newName || $forms->get($newName) === false)
+        {
+            $forms->update($oldName, arg('code'), arg('title'));
+
+            $url = arg('submitURL');
+            if ($oldName != $newName)
+            {
+                $forms->rename($oldName, $newName);
+                $url = str_replace('edit=' . $oldName, 'edit=' . $newName, $url);
+            }
+            HTTP::redirect($url);
+        }
+        ErrorMessage('Форма с таким именем уже есть! Укажите другое имя.');
+        return $this->actionEditDialog($oldName);
+    }
+
+    //-----------------------------------------------------------------------------
+
+    /**
+     * Удаляет форму
+     *
+     * @param string $name
+     *
+     * @return void
+     *
+     * @since 1.01
+     */
+    private function actionDelete($name)
+    {
+        $forms = $this->plugin->getForms();
+        $forms->delete($name);
+        /** @var TAdminUI $page */
+        $page = Eresus_Kernel::app()->getPage();
+        HTTP::redirect($page->url());
+    }
+    //-----------------------------------------------------------------------------
 }
