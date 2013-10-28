@@ -26,6 +26,37 @@
 			<include name="**/*.php" />
 		</fileset>
 	
+    <!--
+    =====================================================================
+    Загружает файлы сторонних компонентов
+    =====================================================================
+    -->
+    <target name="vendors" description="Fetch 3rd party components">
+
+        <if>
+            <available file="vendor" property="." />
+
+            <then>
+                <composer command="update" />
+            </then>
+
+            <else>
+                <if>
+                    <not>
+                        <available file="${project.basedir}/composer.phar" property="." />
+                    </not>
+                    <then>
+                        <httpget url="http://getcomposer.org/composer.phar"
+                            dir="${project.basedir}" />
+                        <chmod file="${project.basedir}/composer.phar" mode="0777" />
+                    </then>
+                </if>
+                <composer command="install" />
+            </else>
+        </if>
+
+    </target>
+
 	<!--
 	=====================================================================
 	Модульные тесы

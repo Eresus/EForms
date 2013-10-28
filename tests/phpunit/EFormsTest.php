@@ -27,9 +27,13 @@
  */
 
 require_once 'bootstrap.php';
-require_once TESTS_SRC_DIR . '/eforms.php';
 
-class EForms_Test extends PHPUnit_Framework_TestCase
+use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamWrapper;
+use org\bovigo\vfs\vfsStreamDirectory;
+use org\bovigo\vfs\vfsStreamFile;
+
+class EFormsTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @covers EForms::uninstall
@@ -37,7 +41,8 @@ class EForms_Test extends PHPUnit_Framework_TestCase
     public function testUninstall()
     {
         $plugin = $this->getMockBuilder('EForms')->disableOriginalConstructor()->
-            setMethods(array('fake'))->getMock();
+            setMethods(array('none'))->getMock();
+        /** @var Plugin $plugin */
         $plugin->name = 'eforms';
 
         vfsStreamWrapper::register();
@@ -52,8 +57,12 @@ class EForms_Test extends PHPUnit_Framework_TestCase
             $d_eforms->addChild($file);
         }
 
-        $GLOBALS['Tests_LegacyKernel'] = new stdClass();
-        $GLOBALS['Tests_LegacyKernel']->froot = vfsStream::url('htdocs') . '/';
+        $legacyKernel = new stdClass();
+        $legacyKernel->froot = vfsStream::url('htdocs') . '/';
+        $cms = $this->getMock('stdClass', array('getLegacyKernel'));
+        $cms->expects($this->any())->method('getLegacyKernel')
+            ->will($this->returnValue($legacyKernel));
+        Eresus_CMS::setMock($cms);
 
         $plugin->uninstall();
 
