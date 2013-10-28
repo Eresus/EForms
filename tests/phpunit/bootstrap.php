@@ -40,9 +40,9 @@ spl_autoload_register(
         {
             require TESTS_SRC_DIR . '/eforms.php';
         }
-        elseif (substr($class, 0, 4) == 'EForms_')
+        elseif (substr($class, 0, 7) == 'EForms_')
         {
-            $path = TESTS_SRC_DIR . '/eforms/classes/' . str_replace('_', '/', substr($class, 4))
+            $path = TESTS_SRC_DIR . '/eforms/classes/' . str_replace('_', '/', substr($class, 7))
                 . '.php';
             if (file_exists($path))
             {

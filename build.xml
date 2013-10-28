@@ -1,31 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- Phing build file for GoodsCatalog
-
- $Id$
- -->
 
 <project name="e-forms" default="build" basedir="./">
 
-	<property file="build.properties" />
-	
-	<!--
-	=====================================================================
-	Filesets definitions
-	=====================================================================
-	-->
-	
-	<!-- Исходные файлы -->
-	<fileset dir="src" id="files.sources">
-		<include name="**" />
-		<exclude name=".svn" />
-	</fileset>
-	
-		<!-- Исходные файлы PHP -->
-		<fileset dir="src" id="files.sources.php">
-			<include name="**/*.php" />
-		</fileset>
-	
+    <property file="build.properties"/>
+
+    <!--
+    =====================================================================
+    Filesets definitions
+    =====================================================================
+    -->
+
+    <!-- Исходные файлы -->
+    <fileset dir="src" id="files.sources">
+        <include name="**"/>
+        <exclude name=".svn"/>
+    </fileset>
+
+    <!-- Исходные файлы PHP -->
+    <fileset dir="src" id="files.sources.php">
+        <include name="**/*.php"/>
+    </fileset>
+
     <!--
     =====================================================================
     Загружает файлы сторонних компонентов
@@ -34,163 +29,164 @@
     <target name="vendors" description="Fetch 3rd party components">
 
         <if>
-            <available file="vendor" property="." />
+            <available file="vendor" property="."/>
 
             <then>
-                <composer command="update" />
+                <composer command="update"/>
             </then>
 
             <else>
                 <if>
                     <not>
-                        <available file="${project.basedir}/composer.phar" property="." />
+                        <available file="${project.basedir}/composer.phar" property="."/>
                     </not>
                     <then>
                         <httpget url="http://getcomposer.org/composer.phar"
-                            dir="${project.basedir}" />
-                        <chmod file="${project.basedir}/composer.phar" mode="0777" />
+                            dir="${project.basedir}"/>
+                        <chmod file="${project.basedir}/composer.phar" mode="0777"/>
                     </then>
                 </if>
-                <composer command="install" />
+                <composer command="install"/>
             </else>
         </if>
 
     </target>
 
-	<!--
-	=====================================================================
-	Модульные тесы
-	=====================================================================
-	-->
-	<target name="tests" description="Run unit tests">
+    <!--
+    =====================================================================
+    Модульные тесты
+    =====================================================================
+    -->
+    <target name="tests" description="Run unit tests">
 
-		<phplint>
-			<fileset refid="files.sources.php" />
-		</phplint>
+        <phplint>
+            <fileset refid="files.sources.php"/>
+        </phplint>
 
-		<mkdir dir="${logs.dir}" />
-		<exec
-			command="phpunit --log-junit ${logs.dir}/phpunit.xml --coverage-clover ${logs.dir}/phpunit.coverage.xml --coverage-html ${phpunit.coverage.html} ${project.basedir}/tests/phpunit/AllTests.php"
-			checkreturn="true"
-			logoutput="true"
-		/>
-		 
-	</target>
+        <mkdir dir="${logs.dir}"/>
+        <exec
+            command="phpunit --log-junit ${logs.dir}/phpunit.xml --coverage-clover ${logs.dir}/phpunit.coverage.xml --coverage-html ${phpunit.coverage.html} ${project.basedir}/tests/phpunit/AllTests.php"
+            checkreturn="true"
+            logoutput="true"
+            />
 
-	<!--
-	=====================================================================
-	Поиск плохого кода
-	=====================================================================
-	-->
-	<target name="mess" description="Mess detection">
-	
-		<mkdir dir="${logs.dir}" />
-		<phpmd rulesets="${phpmd.rulesets}">
-			<formatter
-				type="${phpmd.format}"
-				outfile="${logs.dir}/phpmd.${phpmd.format}"
-			/>
-			<fileset refid="files.sources.php" />
-		</phpmd>
-		
-	</target>
+    </target>
 
-	<!--
-	=====================================================================
-	Проверка соблюдения стандартов кодирования
-	=====================================================================
-	-->
-	<target name="checkstyle" description="Check for coding standards">
-	
-		<mkdir dir="${logs.dir}" />
-		<phpcodesniffer
-			standard="Eresus"
-			haltonerror="false"
-		>
-			<formatter
-				type="${phpcs.format}"
-				outfile="${logs.dir}/phpcs.${phpcs.format}"
-			/>
-			<fileset refid="files.sources.php" />
-		</phpcodesniffer>
-		
-	</target>
+    <!--
+    =====================================================================
+    Поиск плохого кода
+    =====================================================================
+    -->
+    <target name="mess" description="Mess detection">
 
-	<!--
-	=====================================================================
-	Clean up after build
-	=====================================================================
-	-->
+        <mkdir dir="${logs.dir}"/>
+        <phpmd rulesets="${phpmd.rulesets}">
+            <formatter
+                type="${phpmd.format}"
+                outfile="${logs.dir}/phpmd.${phpmd.format}"
+                />
+            <fileset refid="files.sources.php"/>
+        </phpmd>
 
-	<target name="clean" description="Clean up build">
+    </target>
 
-		<delete dir="${build.dir}" includeemptydirs="true" />
-		<delete dir="${logs.dir}" includeemptydirs="true" />
-		<delete dir="${phpunit.coverage.html}" includeemptydirs="true" />
-		
-	</target>
+    <!--
+    =====================================================================
+    Проверка соблюдения стандартов кодирования
+    =====================================================================
+    -->
+    <target name="checkstyle" description="Check for coding standards">
 
-	<!--
-	=====================================================================
-	Сборка проекта
-	=====================================================================
-	-->
+        <mkdir dir="${logs.dir}"/>
+        <phpcodesniffer
+            standard="PSR2DS"
+            haltonerror="false"
+            >
+            <formatter
+                type="${phpcs.format}"
+                outfile="${logs.dir}/phpcs.${phpcs.format}"
+                />
+            <fileset refid="files.sources.php"/>
+        </phpcodesniffer>
 
-	<target name="build" description="Build project">
+    </target>
 
-		<mkdir dir="${build.dir}" />
+    <!--
+    =====================================================================
+    Clean up after build
+    =====================================================================
+    -->
 
-		<copy todir="${build.dir}">
-			<fileset refid="files.sources" />
-			<filterchain>
-			    <expandproperties />
-		  </filterchain>
-		</copy>
+    <target name="clean" description="Clean up build">
 
-	</target>
+        <delete dir="${build.dir}" includeemptydirs="true"/>
+        <delete dir="${logs.dir}" includeemptydirs="true"/>
+        <delete dir="${phpunit.coverage.html}" includeemptydirs="true"/>
 
-	<!--
-	=====================================================================
-	Документация API
-	=====================================================================
-	-->
-	<target name="docs" description="Generate documentation">
+    </target>
 
-		<delete dir="${docs.dir}" includeemptydirs="true" failonerror="false" />
+    <!--
+    =====================================================================
+    Сборка проекта
+    =====================================================================
+    -->
+
+    <target name="build" description="Build project">
+
+        <mkdir dir="${build.dir}"/>
+
+        <copy todir="${build.dir}">
+            <fileset refid="files.sources"/>
+            <filterchain>
+                <expandproperties/>
+            </filterchain>
+        </copy>
+
+    </target>
+
+    <!--
+    =====================================================================
+    Документация API
+    =====================================================================
+    -->
+    <target name="docs" description="Generate documentation">
+
+        <delete dir="${docs.dir}" includeemptydirs="true" failonerror="false"/>
         <mkdir dir="${docs.dir}"/>
 
-		<phpdoc2 title="E-Forms API" destdir="${docs.dir}">
-		   <fileset refid="files.sources" />
-	    </phpdoc2>
+        <phpdoc2 title="E-Forms API" destdir="${docs.dir}">
+            <fileset refid="files.sources"/>
+        </phpdoc2>
 
-	</target>
+    </target>
 
-	<!--
-	=====================================================================
-	Создание дистрибутива
-	=====================================================================
-	-->
-	<target name="distr" depends="build" description="Build distributive">
+    <!--
+    =====================================================================
+    Создание дистрибутива
+    =====================================================================
+    -->
+    <target name="distr" depends="build" description="Build distributive">
 
-		<available file="${distr.dir}" type="dir" property="distr.dir.exists" />
-		
-		<if>
-			<not>
-				<isset property="${distr.dir.exists}" />
-			</not>
-			
-			<then>
-				<mkdir dir="${distr.dir}" />
-			</then>
-			
-		</if>
-		
-		<tar destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2" compression="bzip2">
-			<fileset dir="${build.dir}">
-				<include name="**" />
-			</fileset>
-		</tar>
+        <available file="${distr.dir}" type="dir" property="distr.dir.exists"/>
 
-	</target>
+        <if>
+            <not>
+                <isset property="${distr.dir.exists}"/>
+            </not>
+
+            <then>
+                <mkdir dir="${distr.dir}"/>
+            </then>
+
+        </if>
+
+        <tar destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2"
+            compression="bzip2">
+            <fileset dir="${build.dir}">
+                <include name="**"/>
+            </fileset>
+        </tar>
+
+    </target>
 
 </project>

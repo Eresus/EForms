@@ -85,6 +85,14 @@ class EForms_Form
     protected $html = '';
 
     /**
+     * Хэш-маркер
+     *
+     * @var string
+     * @since 2.01
+     */
+    protected $marker = null;
+
+    /**
      * Конструктор
      *
      * @param EForms $owner  Плагин-владелец
@@ -205,9 +213,14 @@ class EForms_Form
 
         if ($this->redirect)
         {
-            HTTP::redirect($this->redirect);
+            $url = $this->redirect;
+            if (!is_null($this->marker))
+            {
+                $url .= '#' . $this->marker;
+            }
+            HTTP::redirect($url);
         }
-        if (!$this->html)
+        elseif (!$this->html)
         {
             HTTP::redirect($Eresus->request['referer']);
         }
@@ -256,7 +269,23 @@ class EForms_Form
 
         /** @var DOMElement $form */
         $form = $this->xml->getElementsByTagName('form')->item(0);
-        $form->setAttribute('action', $Eresus->request['path']);
+        $url = $Eresus->request['path'];
+
+        /*
+         * Если есть тег marker и нет тега redirect, то маркер надо добавить к адресу в атрибуте
+         * action.
+         */
+        $markers = $this->xml->getElementsByTagNameNS(self::NS, 'marker');
+        $redirects = $this->xml->getElementsByTagNameNS(self::NS, 'redirect');
+        if ($markers->length > 0 && 0 == $redirects->length)
+        {
+            // На случай если указано несколько маркеров, берём только последний
+            /** @var DOMElement $marker */
+            $marker = $markers->item($markers->length - 1);
+            $url .= '#' . $marker->getAttribute('value');
+        }
+
+        $form->setAttribute('action', $url);
     }
 
     /**
@@ -462,6 +491,18 @@ class EForms_Form
             }
             $this->html .= $html;
         }
+    }
+
+    /**
+     * Выполняет действие «marker»
+     *
+     * @param DOMElement $action
+     *
+     * @since 2.01
+     */
+    protected function actionMarker($action)
+    {
+        $this->marker = $action->getAttribute('value');
     }
 }
 

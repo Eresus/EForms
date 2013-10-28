@@ -48,3 +48,13 @@ class Eresus_Kernel extends MockFacade
 class Eresus_CMS extends MockFacade
 {
 }
+
+/**
+ * Заглушка для класса HTTP
+ *
+ * @package Eresus
+ * @subpackage Tests
+ */
+class HTTP extends MockFacade
+{
+}
