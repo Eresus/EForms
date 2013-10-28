@@ -1,8 +1,6 @@
 <?php
 /**
- * E-Forms
- *
- * Модульные тесты
+ * Тесты класса EForms
  *
  * @copyright 2011, ООО "Два слона", http://dvaslona.ru/
  * @license http://www.gnu.org/licenses/gpl.txt  GPL License 3
@@ -26,8 +24,6 @@
  *
  * @package E-Forms
  * @subpackage Tests
- *
- * $Id: eforms.php 1129 2011-08-17 07:32:06Z mk $
  */
 
 require_once 'bootstrap.php';
@@ -35,33 +31,33 @@ require_once TESTS_SRC_DIR . '/eforms.php';
 
 class EForms_Test extends PHPUnit_Framework_TestCase
 {
-	/**
-	 * @covers EForms::uninstall
-	 */
-	public function test_uninstall()
-	{
-		$plugin = $this->getMockBuilder('EForms')->disableOriginalConstructor()->
-			setMethods(array('fake'))->getMock();
-		$plugin->name = 'eforms';
+    /**
+     * @covers EForms::uninstall
+     */
+    public function testUninstall()
+    {
+        $plugin = $this->getMockBuilder('EForms')->disableOriginalConstructor()->
+            setMethods(array('fake'))->getMock();
+        $plugin->name = 'eforms';
 
-		vfsStreamWrapper::register();
-		vfsStreamWrapper::setRoot(new vfsStreamDirectory('htdocs'));
-		$d_templates = new vfsStreamDirectory('templates');
-		vfsStreamWrapper::getRoot()->addChild($d_templates);
-		$d_eforms = new vfsStreamDirectory('eforms');
-		$d_templates->addChild($d_eforms);
-		for ($i = 1; $i < 5; $i++)
-		{
-			$file = new vfsStreamFile('form' . $i . '.html');
-			$d_eforms->addChild($file);
-		}
+        vfsStreamWrapper::register();
+        vfsStreamWrapper::setRoot(new vfsStreamDirectory('htdocs'));
+        $d_templates = new vfsStreamDirectory('templates');
+        vfsStreamWrapper::getRoot()->addChild($d_templates);
+        $d_eforms = new vfsStreamDirectory('eforms');
+        $d_templates->addChild($d_eforms);
+        for ($i = 1; $i < 5; $i++)
+        {
+            $file = new vfsStreamFile('form' . $i . '.html');
+            $d_eforms->addChild($file);
+        }
 
-		$GLOBALS['Tests_LegacyKernel'] = new stdClass();
-		$GLOBALS['Tests_LegacyKernel']->froot = vfsStream::url('htdocs') . '/';
+        $GLOBALS['Tests_LegacyKernel'] = new stdClass();
+        $GLOBALS['Tests_LegacyKernel']->froot = vfsStream::url('htdocs') . '/';
 
-		$plugin->uninstall();
+        $plugin->uninstall();
 
-		$this->assertFalse($d_templates->hasChild('eforms'));
-	}
-	//-----------------------------------------------------------------------------
+        $this->assertFalse($d_templates->hasChild('eforms'));
+    }
 }
+
