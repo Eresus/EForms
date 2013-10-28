@@ -98,8 +98,6 @@ class EForms_Form
         $this->name = $name;
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Возвращает HTML-разметку формы
      *
@@ -182,8 +180,6 @@ class EForms_Form
         return $html;
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Process form actions
      */
@@ -218,8 +214,6 @@ class EForms_Form
         return $this->html;
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Производит разбор кода формы
      *
@@ -252,8 +246,6 @@ class EForms_Form
         }
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Set form's action attribute
      *
@@ -266,8 +258,6 @@ class EForms_Form
         $form = $this->xml->getElementsByTagName('form')->item(0);
         $form->setAttribute('action', $Eresus->request['path']);
     }
-
-    //-----------------------------------------------------------------------------
 
     /**
      * Adds hidden inputs to form
@@ -293,8 +283,6 @@ class EForms_Form
         $form->appendChild($div);
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Get element's 'label' attribute
      *
@@ -306,8 +294,6 @@ class EForms_Form
         $label = $element->getAttributeNS(self::NS, 'label');
         return $label;
     }
-
-    //-----------------------------------------------------------------------------
 
     /**
      * Return posted form data
@@ -372,8 +358,6 @@ class EForms_Form
         return $data;
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Process action directive
      *
@@ -388,8 +372,6 @@ class EForms_Form
             $this->$methodName($action);
         }
     }
-
-    //-----------------------------------------------------------------------------
 
     /**
      * Выполняет действие 'mailto'
@@ -444,8 +426,6 @@ class EForms_Form
         $mail->send();
     }
 
-    //-----------------------------------------------------------------------------
-
     /**
      * Process 'redirect' action
      *
@@ -463,8 +443,6 @@ class EForms_Form
         $page = Eresus_Kernel::app()->getPage();
         $this->redirect = $page->replaceMacros($this->redirect);
     }
-
-    //-----------------------------------------------------------------------------
 
     /**
      * Process 'html' action
@@ -485,5 +463,5 @@ class EForms_Form
             $this->html .= $html;
         }
     }
-    //-----------------------------------------------------------------------------
 }
+
