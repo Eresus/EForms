@@ -123,9 +123,8 @@
                 type="${phpcs.format}"
                 outfile="${logs.dir}/phpcs.${phpcs.file.extension}"
                 />
-            <fileset dir="src/main">
+            <fileset dir="src">
                 <include name="**/*.php" />
-                <exclude name="vendor/**" />
             </fileset>
             <fileset dir="tests">
                 <include name="phpunit/**.php" />
