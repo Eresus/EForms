@@ -60,12 +60,16 @@
     <target name="tests" description="Run unit tests">
 
         <phplint>
-            <fileset refid="files.sources.php"/>
+            <fileset refid="files.sources.php" />
         </phplint>
 
-        <mkdir dir="${logs.dir}"/>
+        <mkdir dir="${logs.dir}" />
         <exec
-            command="phpunit --log-junit ${logs.dir}/phpunit.xml --coverage-clover ${logs.dir}/phpunit.coverage.xml --coverage-html ${phpunit.coverage.html} ${project.basedir}/tests/phpunit/AllTests.php"
+            command="phpunit
+                --log-junit ${logs.dir}/phpunit.xml
+                --coverage-clover ${logs.dir}/phpunit.coverage.xml
+                --coverage-html ${phpunit.coverage.html}
+                --configuration ${project.basedir}/tests/phpunit/phpunit.xml"
             checkreturn="true"
             logoutput="true"
             />
@@ -79,13 +83,14 @@
     -->
     <target name="mess" description="Mess detection">
 
-        <mkdir dir="${logs.dir}"/>
+        <mkdir dir="${logs.dir}" />
+
         <phpmd rulesets="${phpmd.rulesets}">
             <formatter
                 type="${phpmd.format}"
                 outfile="${logs.dir}/phpmd.${phpmd.format}"
                 />
-            <fileset refid="files.sources.php"/>
+            <fileset refid="files.sources.php" />
         </phpmd>
 
     </target>
@@ -97,16 +102,34 @@
     -->
     <target name="checkstyle" description="Check for coding standards">
 
-        <mkdir dir="${logs.dir}"/>
+        <mkdir dir="${logs.dir}" />
+
+        <if>
+            <equals arg1="${phpcs.format}" arg2="checkstyle" />
+            <then>
+                <property name="phpcs.file.extension" value="xml" />
+            </then>
+            <else>
+                <property name="phpcs.file.extension" value="${phpcs.format}" />
+            </else>
+        </if>
+
         <phpcodesniffer
+            encoding="UTF-8"
             standard="PSR2DS"
             haltonerror="false"
             >
             <formatter
                 type="${phpcs.format}"
-                outfile="${logs.dir}/phpcs.${phpcs.format}"
+                outfile="${logs.dir}/phpcs.${phpcs.file.extension}"
                 />
-            <fileset refid="files.sources.php"/>
+            <fileset dir="src/main">
+                <include name="**/*.php" />
+                <exclude name="vendor/**" />
+            </fileset>
+            <fileset dir="tests">
+                <include name="phpunit/**.php" />
+            </fileset>
         </phpcodesniffer>
 
     </target>
