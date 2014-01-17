@@ -1,10 +1,8 @@
 <?php
 /**
- * E-Forms
+ * Форма
  *
- * Класс формы
- *
- * @version 1.01
+ * @version ${product.version}
  *
  * @copyright 2008, Eresus Group, http://eresus.ru/
  * @copyright 2010, ООО "Два слона", http://dvaslona.ru/
@@ -28,8 +26,6 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package E-Forms
- *
- * $Id: eforms.php 1129 2011-08-17 07:32:06Z mk $
  */
 
 /**
@@ -39,444 +35,474 @@
  */
 class EForms_Form
 {
-	/**
-	 * Пространство имён XML
-	 *
-	 * @todo постепенно заменить на «http://eresus.ru/specs/cms/plugins/eforms»
-	 */
-	const NS = 'http://procreat.ru/eresus2/ext/eforms';
+    /**
+     * Пространство имён XML
+     *
+     * @todo постепенно заменить на «http://eresus.ru/specs/cms/plugins/eforms»
+     */
+    const NS = 'http://procreat.ru/eresus2/ext/eforms';
 
-	/**
-	 * Плагин-владелец
-	 *
-	 * @var EForms
-	 */
-	protected $owner;
+    /**
+     * Плагин-владелец
+     *
+     * @var EForms
+     */
+    protected $owner;
 
-	/**
-	 * Имя формы
-	 *
-	 * @var string
-	 */
-	protected $name;
+    /**
+     * Имя формы
+     *
+     * @var string
+     */
+    protected $name;
 
-	/**
-	 * Сырой код
-	 *
-	 * @var string
-	 */
-	protected $code;
+    /**
+     * Сырой код
+     *
+     * @var string
+     */
+    protected $code;
 
-	/**
-	 * XML-представление
-	 *
-	 * @var DOMDocument
-	 */
-	protected $xml;
+    /**
+     * XML-представление
+     *
+     * @var DOMDocument
+     */
+    protected $xml;
 
-	/**
-	 * URL для перенаправления
-	 *
-	 * @var mixed
-	 */
-	protected $redirect = false;
+    /**
+     * URL для перенаправления
+     *
+     * @var mixed
+     */
+    protected $redirect = false;
 
-	/**
-	 * Содержимое тега <html>
-	 *
-	 * @var string
-	 */
-	protected $html = '';
+    /**
+     * Содержимое тега <html>
+     *
+     * @var string
+     */
+    protected $html = '';
 
-	/**
-	 * Конструктор
-	 *
-	 * @param EForms $owner  Плагин-владелец
-	 * @param string $name   Имя формы
-	 *
-	 * @return EForms_Form
-	 */
-	public function __construct(EForms $owner, $name)
-	{
-		$this->owner = $owner;
-		$this->name = $name;
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Хэш-маркер
+     *
+     * @var string
+     * @since 2.01
+     */
+    protected $marker = null;
 
-	/**
-	 * Возвращает HTML-разметку формы
-	 *
-	 * @return string
-	 */
-	public function getHTML()
-	{
-		$this->parse();
-		$xml = clone $this->xml;
+    /**
+     * Конструктор
+     *
+     * @param EForms $owner  Плагин-владелец
+     * @param string $name   Имя формы
+     *
+     * @return EForms_Form
+     */
+    public function __construct(EForms $owner, $name)
+    {
+        $this->owner = $owner;
+        $this->name = $name;
+    }
 
-		/* Удаляем расширенные теги */
-		$tags = $xml->getElementsByTagNameNS(self::NS, '*');
-		while ($tags->length > 0)
-		{
-			$node = $tags->item(0);
-			$node->parentNode->removeChild($node);
-		}
+    /**
+     * Возвращает HTML-разметку формы
+     *
+     * @return string
+     */
+    public function getHTML()
+    {
+        $this->parse();
+        $xml = clone $this->xml;
 
-		// Есть ли поля для выбора файлов?
-		$hasFileInputs = false;
+        /* Удаляем расширенные теги */
+        $tags = $xml->getElementsByTagNameNS(self::NS, '*');
+        while ($tags->length > 0)
+        {
+            $node = $tags->item(0);
+            $node->parentNode->removeChild($node);
+        }
 
-		/*
-		 * Удаляем расширенные атрибуты
-		 * Ищем input[type=file]
-		 */
-		$tags = $xml->getElementsByTagName('*');
-		for ($i=0; $i<$tags->length; $i++)
-		{
-			$node = $tags->item($i);
+        // Есть ли поля для выбора файлов?
+        $hasFileInputs = false;
 
-			$isElement = $node->nodeType == XML_ELEMENT_NODE;
-			/** @var DOMElement $node */
-			$hasAttributes = $isElement && $node->hasAttributes();
+        /*
+         * Удаляем расширенные атрибуты
+         * Ищем input[type=file]
+         */
+        $tags = $xml->getElementsByTagName('*');
+        for ($i = 0; $i < $tags->length; $i++)
+        {
+            $node = $tags->item($i);
 
-			if ($isElement && $hasAttributes)
-			{
-				/** @var DOMNamedNodeMap $attrs */
-				$attrs = $node->attributes;
-				for ($j = 0; $j < $attrs->length; $j++)
-				{
-					/** @var DOMAttr $attr */
-					$attr = $attrs->item($j);
-					if ($attr->namespaceURI == self::NS)
-					{
-						$attr->ownerElement->removeAttributeNode($attr);
-						$j--;
-					}
-				}
+            $isElement = $node->nodeType == XML_ELEMENT_NODE;
+            /** @var DOMElement $node */
+            $hasAttributes = $isElement && $node->hasAttributes();
 
-				if ($node->tagName == 'input' && $node->getAttribute('type') == 'file')
-				{
-					$hasFileInputs = true;
-				}
-			}
-		}
+            if ($isElement && $hasAttributes)
+            {
+                /** @var DOMNamedNodeMap $attrs */
+                $attrs = $node->attributes;
+                for ($j = 0; $j < $attrs->length; $j++)
+                {
+                    /** @var DOMAttr $attr */
+                    $attr = $attrs->item($j);
+                    if ($attr->namespaceURI == self::NS)
+                    {
+                        $attr->ownerElement->removeAttributeNode($attr);
+                        $j--;
+                    }
+                }
 
-		if ($hasFileInputs)
-		{
-			/** @var DOMElement $element */
-			$element = $xml->firstChild->nextSibling;
-			$element->setAttribute('enctype', 'multipart/form-data');
-		}
+                if ($node->tagName == 'input' && $node->getAttribute('type') == 'file')
+                {
+                    $hasFileInputs = true;
+                }
+            }
+        }
 
-		// Предотвращаем схлопывание пустых textarea
-		$tags = $xml->getElementsByTagName('textarea');
-		for ($i=0; $i<$tags->length; $i++)
-		{
-			$node = $tags->item($i);
-			$cdata = $xml->createCDATASection('');
-			$node->appendChild($cdata);
-		}
+        if ($hasFileInputs)
+        {
+            /** @var DOMElement $element */
+            $element = $xml->firstChild->nextSibling;
+            $element->setAttribute('enctype', 'multipart/form-data');
+        }
 
-		$xml->formatOutput = true;
-		$html = $xml->saveXML($xml->firstChild->nextSibling);
-		// Удаляем атрибуты пространств имён
-		$html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html);
-		// Удаляем пустые <![CDATA[]]>
-		$html = str_replace('<![CDATA[]]>', '', $html);
+        // Предотвращаем схлопывание пустых textarea
+        $tags = $xml->getElementsByTagName('textarea');
+        for ($i = 0; $i < $tags->length; $i++)
+        {
+            $node = $tags->item($i);
+            $cdata = $xml->createCDATASection('');
+            $node->appendChild($cdata);
+        }
 
-		return $html;
-	}
-	//-----------------------------------------------------------------------------
+        $xml->formatOutput = true;
+        $html = $xml->saveXML($xml->firstChild->nextSibling);
+        // Удаляем атрибуты пространств имён
+        $html = preg_replace('/\s*xmlns:\w+=("|\').*?("|\')/', '', $html);
+        // Удаляем пустые <![CDATA[]]>
+        $html = str_replace('<![CDATA[]]>', '', $html);
 
-	/**
-	 * Process form actions
-	 */
-	public function processActions()
-	{
-		$Eresus = Eresus_CMS::getLegacyKernel();
+        return $html;
+    }
 
-		$this->parse();
-		$actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
+    /**
+     * Process form actions
+     */
+    public function processActions()
+    {
+        $Eresus = Eresus_CMS::getLegacyKernel();
 
-		if ($actionsElement)
-		{
-			$actions = $actionsElement->item(0)->childNodes;
-			for ($i = 0; $i < $actions->length; $i++)
-			{
-				$action = $actions->item($i);
-				if ($action->nodeType == XML_ELEMENT_NODE)
-				{
-					$this->processAction($action);
-				}
-			}
-		}
+        $this->parse();
+        $actionsElement = $this->xml->getElementsByTagNameNS(self::NS, 'actions');
 
-		if ($this->redirect)
-		{
-			HTTP::redirect($this->redirect);
-		}
-		if (!$this->html)
-		{
-			HTTP::redirect($Eresus->request['referer']);
-		}
-		return $this->html;
-	}
-	//-----------------------------------------------------------------------------
+        if ($actionsElement)
+        {
+            $actions = $actionsElement->item(0)->childNodes;
+            for ($i = 0; $i < $actions->length; $i++)
+            {
+                $action = $actions->item($i);
+                if ($action->nodeType == XML_ELEMENT_NODE)
+                {
+                    $this->processAction($action);
+                }
+            }
+        }
 
-	/**
-	 * Производит разбор кода формы
-	 *
-	 * @return void
-	 *
-	 * @since 1.01
-	 */
-	protected function parse()
-	{
-		$code = $this->owner->getForms()->getFormCode($this->name);
+        if ($this->redirect)
+        {
+            $url = $this->redirect;
+            if (!is_null($this->marker))
+            {
+                $url .= '#' . $this->marker;
+            }
+            HTTP::redirect($url);
+        }
+        elseif (!$this->html)
+        {
+            HTTP::redirect($Eresus->request['referer']);
+        }
+        return $this->html;
+    }
 
-		if ($code)
-		{
-			$imp = new DOMImplementation;
-			$dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
-				'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
-			$this->xml = $imp->createDocument("", "", $dtd);
-			$Eresus = Eresus_CMS::getLegacyKernel();
-			$code =
-				'<!DOCTYPE root[' .
-				file_get_contents($Eresus->froot . 'core/xhtml-lat1.ent') .
-				file_get_contents($Eresus->froot . 'core/xhtml-special.ent') .
-        ']>' .
-				$code;
-			$this->xml->loadXML($code);
-			$this->xml->encoding = 'utf-8';
-			$this->xml->normalize();
-			$this->setActionAttribute();
-			$this->setActionTags();
-		}
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Производит разбор кода формы
+     *
+     * @return void
+     *
+     * @since 1.01
+     */
+    protected function parse()
+    {
+        $code = $this->owner->getForms()->getFormCode($this->name);
 
-	/**
-	 * Set form's action attribute
-	 *
-	 */
-	protected function setActionAttribute()
-	{
-		$Eresus = Eresus_CMS::getLegacyKernel();
+        if ($code)
+        {
+            $imp = new DOMImplementation;
+            $dtd = $imp->createDocumentType('html', '-//W3C//DTD XHTML 1.0 Strict//EN',
+                'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd');
+            $this->xml = $imp->createDocument("", "", $dtd);
+            $Eresus = Eresus_CMS::getLegacyKernel();
+            $code =
+                '<!DOCTYPE root[' .
+                file_get_contents($Eresus->froot . 'core/xhtml-lat1.ent') .
+                file_get_contents($Eresus->froot . 'core/xhtml-special.ent') .
+                ']>' .
+                $code;
+            $this->xml->loadXML($code);
+            $this->xml->encoding = 'utf-8';
+            $this->xml->normalize();
+            $this->setActionAttribute();
+            $this->setActionTags();
+        }
+    }
 
-		/** @var DOMElement $form */
-		$form = $this->xml->getElementsByTagName('form')->item(0);
-		$form->setAttribute('action', $Eresus->request['path']);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Set form's action attribute
+     *
+     */
+    protected function setActionAttribute()
+    {
+        $Eresus = Eresus_CMS::getLegacyKernel();
 
-	/**
-	 * Adds hidden inputs to form
-	 *
-	 */
-	protected function setActionTags()
-	{
-		$form = $this->xml->getElementsByTagName('form')->item(0);
-		$div = $this->xml->createElement('div');
+        /** @var DOMElement $form */
+        $form = $this->xml->getElementsByTagName('form')->item(0);
+        $url = $Eresus->request['path'];
 
-		$input = $this->xml->createElement('input');
-		$input->setAttribute('type', 'hidden');
-		$input->setAttribute('name', 'ext');
-		$input->setAttribute('value', $this->owner->name);
-		$div->appendChild($input);
+        /*
+         * Если есть тег marker и нет тега redirect, то маркер надо добавить к адресу в атрибуте
+         * action.
+         */
+        $markers = $this->xml->getElementsByTagNameNS(self::NS, 'marker');
+        $redirects = $this->xml->getElementsByTagNameNS(self::NS, 'redirect');
+        if ($markers->length > 0 && 0 == $redirects->length)
+        {
+            // На случай если указано несколько маркеров, берём только последний
+            /** @var DOMElement $marker */
+            $marker = $markers->item($markers->length - 1);
+            $url .= '#' . $marker->getAttribute('value');
+        }
 
-		$input = $this->xml->createElement('input');
-		$input->setAttribute('type', 'hidden');
-		$input->setAttribute('name', 'form');
-		$input->setAttribute('value', $this->name);
-		$div->appendChild($input);
+        $form->setAttribute('action', $url);
+    }
 
-		$form->appendChild($div);
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Adds hidden inputs to form
+     *
+     */
+    protected function setActionTags()
+    {
+        $form = $this->xml->getElementsByTagName('form')->item(0);
+        $div = $this->xml->createElement('div');
 
-	/**
-	 * Get element's 'label' attribute
-	 *
-	 * @param DOMElement $element
-	 * @return string
-	 */
-	protected function getLabelAttr($element)
-	{
-		$label = $element->getAttributeNS(self::NS, 'label');
-		return $label;
-	}
-	//-----------------------------------------------------------------------------
+        $input = $this->xml->createElement('input');
+        $input->setAttribute('type', 'hidden');
+        $input->setAttribute('name', 'ext');
+        $input->setAttribute('value', $this->owner->name);
+        $div->appendChild($input);
 
-	/**
-	 * Return posted form data
-	 *
-	 * @return array
-	 */
-	protected function getFormData()
-	{
-		$data = array();
-		$inputTagNames = array('input', 'textarea', 'select');
-		$skipNames = array('ext', 'form');
+        $input = $this->xml->createElement('input');
+        $input->setAttribute('type', 'hidden');
+        $input->setAttribute('name', 'form');
+        $input->setAttribute('value', $this->name);
+        $div->appendChild($input);
 
-		/** @var DOMElement $element */
-		$element = $this->xml->getElementsByTagName('form')->item(0);
-		$elements = $element->getElementsByTagName('*');
+        $form->appendChild($div);
+    }
 
-		for ($i = 0; $i < $elements->length; $i++)
-		{
-			$element = $elements->item($i);
+    /**
+     * Get element's 'label' attribute
+     *
+     * @param DOMElement $element
+     * @return string
+     */
+    protected function getLabelAttr($element)
+    {
+        $label = $element->getAttributeNS(self::NS, 'label');
+        return $label;
+    }
 
-			$isElement = $element->nodeType == XML_ELEMENT_NODE;
-			$isInputTag = $isElement && in_array($element->nodeName, $inputTagNames);
+    /**
+     * Return posted form data
+     *
+     * @return array
+     */
+    protected function getFormData()
+    {
+        $data = array();
+        $inputTagNames = array('input', 'textarea', 'select');
+        $skipNames = array('ext', 'form');
 
-			if ($isInputTag)
-			{
-				$name = $element->getAttribute('name');
-				if (in_array($name, $skipNames))
-				{
-					continue;
-				}
-				if ($name)
-				{
-					if ($element->getAttribute('type') == 'file')
-					{
-						$data[$name]['file'] = $_FILES[$name];
-					}
-					else
-					{
-						$data[$name]['data'] = arg($name);
-					}
-					$data[$name]['label'] = $this->getLabelAttr($element);
-					if (!$data[$name]['label'])
-					{
-						$data[$name]['label'] = $name;
-					}
+        /** @var DOMElement $element */
+        $element = $this->xml->getElementsByTagName('form')->item(0);
+        $elements = $element->getElementsByTagName('*');
 
-					switch ($element->nodeName)
-					{
-						case 'input':
-							switch ($element->getAttribute('type'))
-							{
-								case 'checkbox':
-									$data[$name]['data'] = $data[$name]['data'] ? strYes : strNo;
-									break;
-							}
-							break;
-					}
-				}
-			}
-		}
+        for ($i = 0; $i < $elements->length; $i++)
+        {
+            $element = $elements->item($i);
 
-		return $data;
-	}
-	//-----------------------------------------------------------------------------
+            $isElement = $element->nodeType == XML_ELEMENT_NODE;
+            $isInputTag = $isElement && in_array($element->nodeName, $inputTagNames);
 
-	/**
-	 * Process action directive
-	 *
-	 * @param DOMNode $action
-	 */
-	protected function processAction(DOMNode $action)
-	{
-		$actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS))+1);
-		$methodName = 'action'.$actionName;
-		if (method_exists($this, $methodName))
-		{
-			$this->$methodName($action);
-		}
-	}
-	//-----------------------------------------------------------------------------
+            if ($isInputTag)
+            {
+                $name = $element->getAttribute('name');
+                if (in_array($name, $skipNames))
+                {
+                    continue;
+                }
+                if ($name)
+                {
+                    if ($element->getAttribute('type') == 'file')
+                    {
+                        $data[$name]['file'] = $_FILES[$name];
+                    }
+                    else
+                    {
+                        $data[$name]['data'] = arg($name);
+                    }
+                    $data[$name]['label'] = $this->getLabelAttr($element);
+                    if (!$data[$name]['label'])
+                    {
+                        $data[$name]['label'] = $name;
+                    }
 
-	/**
-	 * Выполняет действие 'mailto'
-	 *
-	 * @param DOMElement $action
-	 *
-	 * @uses EForms::verifyClassLoaded()
-	 */
-	protected function actionMailto($action)
-	{
-		$mail = new EForms_Mail();
+                    switch ($element->nodeName)
+                    {
+                        case 'input':
+                            switch ($element->getAttribute('type'))
+                            {
+                                case 'checkbox':
+                                    $data[$name]['data'] = $data[$name]['data'] ? strYes : strNo;
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
 
-		if (!($to = $action->getAttribute('to')))
-		{
-			return;
-		}
-		$mail->addTo($to);
+        return $data;
+    }
 
-		if (!($subj = $action->getAttribute('subj')))
-		{
-			$subj = $this->name;
-		}
-		$mail->setSubject($subj);
+    /**
+     * Process action directive
+     *
+     * @param DOMNode $action
+     */
+    protected function processAction(DOMNode $action)
+    {
+        $actionName = substr($action->nodeName, strlen($action->lookupPrefix(self::NS)) + 1);
+        $methodName = 'action' . $actionName;
+        if (method_exists($this, $methodName))
+        {
+            $this->$methodName($action);
+        }
+    }
 
-		$data = $this->getFormData();
+    /**
+     * Выполняет действие 'mailto'
+     *
+     * @param DOMElement $action
+     *
+     * @uses EForms::verifyClassLoaded()
+     */
+    protected function actionMailto($action)
+    {
+        $mail = new EForms_Mail();
 
-		$text = '';
-		foreach ($data as $name => $item)
-		{
-			if (!isset($item['label']))
-			{
-				continue;
-			}
-			if (isset($item['data']))
-			{
-				$text .= $item['label'].': '.$item['data']."\n";
-			}
-			elseif (isset($item['file']))
-			{
-				$Eresus = Eresus_CMS::getLegacyKernel();
-				$filename = tempnam($Eresus->fdata, $this->owner->name);
-				if ($filename = upload($name, $filename, true))
-				{
-					list ($contentType, $mimeType) = explode('/', $item['file']['type']);
-					$mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
-						$mimeType);
-					unlink($filename);
-				}
-			}
-		}
-		$mail->setText($text);
-		$mail->send();
-	}
-	//-----------------------------------------------------------------------------
+        if (!($to = $action->getAttribute('to')))
+        {
+            return;
+        }
+        $mail->addTo($to);
 
-	/**
-	 * Process 'redirect' action
-	 *
-	 * @param DOMElement $action
-	 */
-	protected function actionRedirect($action)
-	{
-		if ($this->redirect)
-		{
-			return;
-		}
+        if (!($subj = $action->getAttribute('subj')))
+        {
+            $subj = $this->name;
+        }
+        $mail->setSubject($subj);
 
-		$this->redirect = $action->getAttribute('uri');
-		/** @var TAdminUI $page */
-		$page = Eresus_Kernel::app()->getPage();
-		$this->redirect = $page->replaceMacros($this->redirect);
-	}
-	//-----------------------------------------------------------------------------
+        $data = $this->getFormData();
 
-	/**
-	 * Process 'html' action
-	 *
-	 * @param DOMElement $action
-	 */
-	protected function actionHtml($action)
-	{
-		$elements = $action->childNodes;
+        $text = '';
+        foreach ($data as $name => $item)
+        {
+            if (!isset($item['label']))
+            {
+                continue;
+            }
+            if (isset($item['data']))
+            {
+                $text .= $item['label'] . ': ' . $item['data'] . "\n";
+            }
+            elseif (isset($item['file']))
+            {
+                $Eresus = Eresus_CMS::getLegacyKernel();
+                $filename = tempnam($Eresus->fdata, $this->owner->name);
+                if ($filename = upload($name, $filename, true))
+                {
+                    list ($contentType, $mimeType) = explode('/', $item['file']['type']);
+                    $mail->addAttachment($item['file']['name'], file_get_contents($filename), $contentType,
+                        $mimeType);
+                    unlink($filename);
+                }
+            }
+        }
+        $mail->setText($text);
+        $mail->send();
+    }
 
-		if ($elements->length)
-		{
-			$html = '';
-			for ($i = 0; $i < $elements->length; $i++)
-			{
-				$html .= $this->xml->saveXML($elements->item($i));
-			}
-			$this->html .= $html;
-		}
-	}
-	//-----------------------------------------------------------------------------
+    /**
+     * Process 'redirect' action
+     *
+     * @param DOMElement $action
+     */
+    protected function actionRedirect($action)
+    {
+        if ($this->redirect)
+        {
+            return;
+        }
+
+        $this->redirect = $action->getAttribute('uri');
+        /** @var TAdminUI $page */
+        $page = Eresus_Kernel::app()->getPage();
+        $this->redirect = $page->replaceMacros($this->redirect);
+    }
+
+    /**
+     * Process 'html' action
+     *
+     * @param DOMElement $action
+     */
+    protected function actionHtml($action)
+    {
+        $elements = $action->childNodes;
+
+        if ($elements->length)
+        {
+            $html = '';
+            for ($i = 0; $i < $elements->length; $i++)
+            {
+                $html .= $this->xml->saveXML($elements->item($i));
+            }
+            $this->html .= $html;
+        }
+    }
+
+    /**
+     * Выполняет действие «marker»
+     *
+     * @param DOMElement $action
+     *
+     * @since 2.01
+     */
+    protected function actionMarker($action)
+    {
+        $this->marker = $action->getAttribute('value');
+    }
 }
+

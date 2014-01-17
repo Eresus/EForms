@@ -28,8 +28,6 @@
  * <http://www.gnu.org/licenses/>
  *
  * @package E-Forms
- *
- * $Id$
  */
 
 

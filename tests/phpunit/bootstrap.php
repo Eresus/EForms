@@ -1,8 +1,6 @@
 <?php
 /**
- * E-Forms
- *
- * Модульные тесты
+ * Стартовый файл тестов
  *
  * @copyright 2011, ООО "Два слона", http://dvaslona.ru/
  * @license http://www.gnu.org/licenses/gpl.txt  GPL License 3
@@ -26,24 +24,33 @@
  *
  * @package E-Forms
  * @subpackage Tests
- *
- * $Id: eforms.php 1129 2011-08-17 07:32:06Z mk $
  */
 
-define('TESTS_SRC_DIR', realpath(__DIR__) . '/../../src');
+/**
+ * Путь к папке исходные кодов
+ */
+define('TESTS_SRC_DIR', realpath(__DIR__ . '/../../src'));
 
-require_once 'vfsStream/vfsStream.php';
+require_once TESTS_SRC_DIR . '/../vendor/autoload.php';
 
+spl_autoload_register(
+    function ($class)
+    {
+        if ('EForms' == $class)
+        {
+            require TESTS_SRC_DIR . '/eforms.php';
+        }
+        elseif (substr($class, 0, 7) == 'EForms_')
+        {
+            $path = TESTS_SRC_DIR . '/eforms/classes/' . str_replace('_', '/', substr($class, 7))
+                . '.php';
+            if (file_exists($path))
+            {
+                require $path;
+            }
+        }
+    }
+);
 
-class Plugin
-{
-	public function uninstall() {}
-}
+require_once 'stubs.php';
 
-class Eresus_CMS
-{
-	public static function getLegacyKernel()
-	{
-		return isset($GLOBALS['Tests_LegacyKernel']) ? $GLOBALS['Tests_LegacyKernel'] : null;
-	}
-}
