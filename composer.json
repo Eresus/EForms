@@ -1,6 +1,7 @@
 {
     "name": "eresus/eforms",
     "description": "Модуль «E-Forms» для Eresus CMS",
+    "license": "GPL-3.0",
     "authors":
     [
         {

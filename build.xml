@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="e-forms" default="build" basedir="./">
+<project name="E-Forms" default="build" basedir="./">
 
     <property file="build.properties"/>
 
     <!--
     =====================================================================
-    Filesets definitions
+    Наборы файлов
     =====================================================================
     -->
 
-    <!-- Исходные файлы -->
+    <!-- Исходные файлы модуля -->
     <fileset dir="src" id="files.sources">
         <include name="**"/>
-        <exclude name=".svn"/>
     </fileset>
 
-    <!-- Исходные файлы PHP -->
+    <!-- Исходные файлы модуля (только PHP) -->
     <fileset dir="src" id="files.sources.php">
         <include name="**/*.php"/>
     </fileset>
@@ -29,23 +28,22 @@
     <target name="vendors" description="Fetch 3rd party components">
 
         <if>
-            <available file="vendor" property="."/>
+            <not>
+                <available file="${project.basedir}/composer.phar" property="."/>
+            </not>
+            <then>
+                <httpget url="http://getcomposer.org/composer.phar"
+                    dir="${project.basedir}"/>
+                <chmod file="${project.basedir}/composer.phar" mode="0777"/>
+            </then>
+        </if>
 
+        <if>
+            <available file="vendor" property="."/>
             <then>
                 <composer command="update"/>
             </then>
-
             <else>
-                <if>
-                    <not>
-                        <available file="${project.basedir}/composer.phar" property="."/>
-                    </not>
-                    <then>
-                        <httpget url="http://getcomposer.org/composer.phar"
-                            dir="${project.basedir}"/>
-                        <chmod file="${project.basedir}/composer.phar" mode="0777"/>
-                    </then>
-                </if>
                 <composer command="install"/>
             </else>
         </if>
@@ -60,10 +58,10 @@
     <target name="tests" description="Run unit tests">
 
         <phplint>
-            <fileset refid="files.sources.php" />
+            <fileset refid="files.sources.php"/>
         </phplint>
 
-        <mkdir dir="${logs.dir}" />
+        <mkdir dir="${logs.dir}"/>
         <exec
             command="phpunit
                 --log-junit ${logs.dir}/phpunit.xml
@@ -72,7 +70,7 @@
                 --configuration ${project.basedir}/tests/phpunit/phpunit.xml"
             checkreturn="true"
             logoutput="true"
-            />
+        />
 
     </target>
 
@@ -83,14 +81,14 @@
     -->
     <target name="mess" description="Mess detection">
 
-        <mkdir dir="${logs.dir}" />
+        <mkdir dir="${logs.dir}"/>
 
         <phpmd rulesets="${phpmd.rulesets}">
             <formatter
                 type="${phpmd.format}"
                 outfile="${logs.dir}/phpmd.${phpmd.format}"
-                />
-            <fileset refid="files.sources.php" />
+            />
+            <fileset refid="files.sources.php"/>
         </phpmd>
 
     </target>
@@ -102,48 +100,44 @@
     -->
     <target name="checkstyle" description="Check for coding standards">
 
-        <mkdir dir="${logs.dir}" />
+        <mkdir dir="${logs.dir}"/>
 
         <if>
-            <equals arg1="${phpcs.format}" arg2="checkstyle" />
+            <equals arg1="${phpcs.format}" arg2="checkstyle"/>
             <then>
-                <property name="phpcs.file.extension" value="xml" />
+                <property name="phpcs.file.extension" value="xml"/>
             </then>
             <else>
-                <property name="phpcs.file.extension" value="${phpcs.format}" />
+                <property name="phpcs.file.extension" value="${phpcs.format}"/>
             </else>
         </if>
 
-        <phpcodesniffer
-            encoding="UTF-8"
-            standard="PSR2DS"
-            haltonerror="false"
-            >
+        <phpcodesniffer standard="PSR2DS" haltonerror="false" encoding="UTF-8">
             <formatter
                 type="${phpcs.format}"
                 outfile="${logs.dir}/phpcs.${phpcs.file.extension}"
-                />
-            <fileset dir="src">
-                <include name="**/*.php" />
-            </fileset>
-            <fileset dir="tests">
-                <include name="phpunit/**.php" />
-            </fileset>
+            />
+            <fileset refid="files.sources.php"/>
         </phpcodesniffer>
 
     </target>
 
     <!--
     =====================================================================
-    Clean up after build
+    Очистка сборки от всех созданных файлов
     =====================================================================
     -->
 
     <target name="clean" description="Clean up build">
 
+        <delete dir="${distr.dir}" includeemptydirs="true"/>
         <delete dir="${build.dir}" includeemptydirs="true"/>
+        <delete dir="${docs.dir}" includeemptydirs="true"/>
         <delete dir="${logs.dir}" includeemptydirs="true"/>
         <delete dir="${phpunit.coverage.html}" includeemptydirs="true"/>
+        <delete file="composer.lock"/>
+        <delete file="composer.phar"/>
+        <delete dir="vendor" includeemptydirs="true"/>
 
     </target>
 
@@ -173,11 +167,17 @@
     -->
     <target name="docs" description="Generate documentation">
 
-        <delete dir="${docs.dir}" includeemptydirs="true" failonerror="false"/>
+        <if>
+            <available file="${docs.dir}" property="."/>
+            <then>
+                <delete dir="${docs.dir}" includeemptydirs="true" failonerror="true"/>
+            </then>
+        </if>
         <mkdir dir="${docs.dir}"/>
 
-        <phpdoc2 title="E-Forms API" destdir="${docs.dir}">
-            <fileset refid="files.sources"/>
+
+        <phpdoc2 title="${phing.project.name} ${product.version} API" destdir="${docs.dir}">
+            <fileset refid="files.sources.php"/>
         </phpdoc2>
 
     </target>
@@ -187,23 +187,21 @@
     Создание дистрибутива
     =====================================================================
     -->
-    <target name="distr" depends="build" description="Build distributive">
-
-        <available file="${distr.dir}" type="dir" property="distr.dir.exists"/>
+    <target name="distrib" depends="build" description="Build distributive">
 
         <if>
             <not>
-                <isset property="${distr.dir.exists}"/>
+                <available file="${distr.dir}" property="."/>
             </not>
-
             <then>
                 <mkdir dir="${distr.dir}"/>
             </then>
-
         </if>
 
-        <tar destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2"
-            compression="bzip2">
+        <tar
+            destfile="${distr.dir}/${phing.project.name}-${product.version}.tar.bz2"
+            compression="bzip2"
+        >
             <fileset dir="${build.dir}">
                 <include name="**"/>
             </fileset>
