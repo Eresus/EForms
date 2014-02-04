@@ -504,5 +504,45 @@ class EForms_Form
     {
         $this->marker = $action->getAttribute('value');
     }
+
+    /**
+     * Выполняет действие 'confirm'
+     *
+     * @param DOMElement $action
+     */
+    protected function actionConfirm($action)
+    {
+        $mail = new EForms_Mail();
+
+        if (!($target = $action->getAttribute('target')))
+        {
+            return;
+        }
+        $to = arg($target);
+        if (!$to)
+        {
+            return;
+        }
+        $mail->addTo($to);
+
+        if (!($subj = $action->getAttribute('subj')))
+        {
+            $subj = $this->name;
+        }
+        $mail->setSubject($subj);
+
+        $text = '';
+        $elements = $action->childNodes;
+        if ($elements->length)
+        {
+            for ($i = 0; $i < $elements->length; $i++)
+            {
+                $text .= $this->xml->saveXML($elements->item($i));
+            }
+        }
+
+        $mail->setText($text);
+        $mail->send();
+    }
 }
 
